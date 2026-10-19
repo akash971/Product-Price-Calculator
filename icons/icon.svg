@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b111e"/>
+      <stop offset="50%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#022c22"/>
+    </linearGradient>
+    <linearGradient id="primaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="50%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#ef4444"/>
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.12)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0.02)"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Background Squircle -->
+  <rect x="16" y="16" width="480" height="480" rx="108" fill="url(#bgGrad)" stroke="rgba(16, 185, 129, 0.35)" stroke-width="4"/>
+
+  <!-- Subtle Grid Lines -->
+  <path d="M 60 180 L 452 180 M 60 332 L 452 332 M 180 60 L 180 452 M 332 60 L 332 452" stroke="rgba(255,255,255,0.04)" stroke-width="2"/>
+
+  <!-- Central Glass Card -->
+  <rect x="76" y="86" width="360" height="340" rx="36" fill="url(#cardGrad)" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>
+
+  <!-- Route Line (China -> Guangzhou -> Dhaka -> Rajshahi) -->
+  <path d="M 120 180 C 180 130, 240 230, 310 170 S 370 210, 392 190" fill="none" stroke="url(#primaryGrad)" stroke-width="6" stroke-linecap="round" stroke-dasharray="8 6"/>
+
+  <!-- Route Nodes -->
+  <circle cx="120" cy="180" r="10" fill="#ef4444" filter="url(#glow)"/>
+  <circle cx="230" cy="192" r="8" fill="#f59e0b"/>
+  <circle cx="310" cy="170" r="8" fill="#06b6d4"/>
+  <circle cx="392" cy="190" r="12" fill="#10b981" filter="url(#glow)"/>
+
+  <!-- Main Cargo Box / Calculator Graphic -->
+  <g transform="translate(166, 220)">
+    <!-- Isometric Cube / Parcel -->
+    <path d="M 90 20 L 160 55 L 90 90 L 20 55 Z" fill="#10b981" opacity="0.9"/>
+    <path d="M 20 55 L 90 90 L 90 160 L 20 125 Z" fill="#059669" opacity="0.95"/>
+    <path d="M 90 90 L 160 55 L 160 125 L 90 160 Z" fill="#047857"/>
+    <!-- Box Tape / Ribbon -->
+    <path d="M 55 37.5 L 125 72.5 L 125 142.5 L 90 160 L 55 142.5 Z" fill="#34d399" opacity="0.3"/>
+  </g>
+
+  <!-- Currency Badges: ¥ and ৳ -->
+  <!-- RMB Badge Left -->
+  <circle cx="140" cy="360" r="34" fill="#1e293b" stroke="#ef4444" stroke-width="3"/>
+  <text x="140" y="374" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="900" font-size="34" fill="#f87171" text-anchor="middle">¥</text>
+
+  <!-- Transfer Arrow -->
+  <path d="M 195 360 L 245 360" stroke="url(#primaryGrad)" stroke-width="5" stroke-linecap="round"/>
+  <polyline points="235,348 250,360 235,372" fill="none" stroke="url(#primaryGrad)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- BDT Badge Right -->
+  <circle cx="305" cy="360" r="38" fill="#134e4a" stroke="#10b981" stroke-width="3" filter="url(#glow)"/>
+  <text x="305" y="376" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="900" font-size="38" fill="#34d399" text-anchor="middle">৳</text>
+
+  <!-- Hub Tag at Top -->
+  <rect x="156" y="108" width="200" height="34" rx="17" fill="rgba(16, 185, 129, 0.18)" stroke="#10b981" stroke-width="1.5"/>
+  <text x="256" y="130" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="700" font-size="13" fill="#6ee7b7" text-anchor="middle" letter-spacing="1.5">TAOBAO ➔ RAJSHAHI</text>
+</svg>
