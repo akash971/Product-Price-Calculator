@@ -1,10 +1,10 @@
 /**
  * TAOBAO ➔ RAJSHAHI LANDED COST & PRICING ENGINE
- * High-performance, offline-first Vanilla JS Engine
+ * Ultra-Responsive Mobile Web Application Engine
  */
 
 // -----------------------------------------------------------------------------
-// Default Configuration & Initial State
+// Storage Keys & Default Configuration
 // -----------------------------------------------------------------------------
 const STORAGE_KEYS = {
   SETTINGS: 'rcb_settings_v1',
@@ -49,6 +49,7 @@ class AppState {
     this.settings = this.loadSettings();
     this.categories = this.loadCategories();
     this.batch = this.loadBatch();
+    this.currentMobileTab = 'calc'; // 'calc' | 'batch'
     this.calculator = {
       productName: '',
       categoryId: this.categories[0]?.id || 'clothing',
@@ -65,7 +66,6 @@ class AppState {
       const stored = localStorage.getItem(STORAGE_KEYS.SETTINGS);
       return stored ? { ...DEFAULT_SETTINGS, ...JSON.parse(stored) } : { ...DEFAULT_SETTINGS };
     } catch (e) {
-      console.warn('Failed to parse settings from storage, using defaults', e);
       return { ...DEFAULT_SETTINGS };
     }
   }
@@ -80,7 +80,6 @@ class AppState {
       const stored = localStorage.getItem(STORAGE_KEYS.CATEGORIES);
       return stored ? JSON.parse(stored) : [...DEFAULT_CATEGORIES];
     } catch (e) {
-      console.warn('Failed to parse categories from storage', e);
       return [...DEFAULT_CATEGORIES];
     }
   }
@@ -138,7 +137,7 @@ const CalcEngine = {
     return leg1 + leg2 + leg3 + buffer;
   },
 
-  // Complete breakdown calculation for given parameters
+  // Complete breakdown calculation
   calculate(params, settings = state.settings, categories = state.categories) {
     const weight = Math.max(0, parseFloat(params.weightGrams) || 0);
     const priceRmb = Math.max(0, parseFloat(params.priceRmb) || 0);
@@ -172,7 +171,6 @@ const CalcEngine = {
       const flatMarkup = Math.max(0, parseFloat(params.flatMarkupBdt) || 0);
       rawSellingPriceBdt = totalLandedCostBdt + flatMarkup;
     } else {
-      // Percentage Target Margin
       const marginPct = Math.min(95, Math.max(0, parseFloat(params.marginPercent) || 0));
       if (marginPct >= 100) {
         rawSellingPriceBdt = totalLandedCostBdt * 2;
@@ -181,7 +179,7 @@ const CalcEngine = {
       }
     }
 
-    // Optional smart rounding
+    // Optional smart price rounding
     let sellingPriceBdt = rawSellingPriceBdt;
     if (settings.roundToNearest === '10') {
       sellingPriceBdt = Math.ceil(rawSellingPriceBdt / 10) * 10;
@@ -200,13 +198,11 @@ const CalcEngine = {
       weight,
       priceRmb,
       rmbRate,
-      // Leg rates per gram
       chinaRatePerGm,
       freightRatePerGm,
       bdRatePerGm,
       bufferRatePerGm,
       totalShippingRatePerGm,
-      // Monetary outputs
       productBaseCostBdt,
       chinaDomesticCostBdt,
       forwarderFreightCostBdt,
@@ -225,7 +221,7 @@ const CalcEngine = {
 };
 
 // -----------------------------------------------------------------------------
-// Formatters & Utilities
+// Formatters & UI Utilities
 // -----------------------------------------------------------------------------
 const formatBDT = (num, decimals = 2) => {
   if (isNaN(num)) return '৳0.00';
@@ -238,14 +234,6 @@ const formatBDT = (num, decimals = 2) => {
 const formatRMB = (num, decimals = 2) => {
   if (isNaN(num)) return '¥0.00';
   return '¥' + Number(num).toLocaleString('en-US', {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals
-  });
-};
-
-const formatNumber = (num, decimals = 2) => {
-  if (isNaN(num)) return '0.00';
-  return Number(num).toLocaleString('en-US', {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals
   });
@@ -271,7 +259,6 @@ const showToast = (message, type = 'success') => {
   toast.innerHTML = `${iconSvg} <span>${message}</span>`;
   container.appendChild(toast);
 
-  // Haptic feedback if available on mobile
   if ('vibrate' in navigator) {
     try { navigator.vibrate(25); } catch (e) {}
   }
@@ -281,7 +268,7 @@ const showToast = (message, type = 'success') => {
     toast.style.transform = 'translateY(10px)';
     toast.style.transition = 'all 0.2s ease';
     setTimeout(() => toast.remove(), 200);
-  }, 2800);
+  }, 2600);
 };
 
 // -----------------------------------------------------------------------------
@@ -298,16 +285,20 @@ const UI = {
     this.renderBatchSummary();
     this.calculateAndRender();
     this.checkFirstVisit();
-    this.initServiceWorker();
-    this.initNetworkStatus();
   },
 
   cacheDom() {
+    // Mobile Tab Navigation
+    this.tabBtnCalc = document.getElementById('tabBtnCalc');
+    this.tabBtnBatch = document.getElementById('tabBtnBatch');
+    this.tabBatchBadge = document.getElementById('tabBatchBadge');
+    this.sectionCalculator = document.getElementById('sectionCalculator');
+    this.sectionBatch = document.getElementById('sectionBatch');
+
     // Header elements
     this.badgeExchangeRate = document.getElementById('badgeExchangeRate');
     this.btnSettings = document.getElementById('btnSettings');
     this.btnThemeToggle = document.getElementById('btnThemeToggle');
-    this.pwaStatusBadge = document.getElementById('pwaStatusBadge');
 
     // Route bar
     this.routeLeg1Rate = document.getElementById('routeLeg1Rate');
@@ -332,6 +323,11 @@ const UI = {
     this.btnCopyQuote = document.getElementById('btnCopyQuote');
     this.presetContainer = document.getElementById('presetContainer');
 
+    // Sticky Mobile Bar
+    this.stickyLanded = document.getElementById('stickyLanded');
+    this.stickySell = document.getElementById('stickySell');
+    this.btnStickySave = document.getElementById('btnStickySave');
+
     // Hero outputs
     this.outLandedCost = document.getElementById('outLandedCost');
     this.outSellingPrice = document.getElementById('outSellingPrice');
@@ -340,7 +336,7 @@ const UI = {
     this.badgeMarkup = document.getElementById('badgeMarkup');
     this.outTotalShippingRate = document.getElementById('outTotalShippingRate');
 
-    // Visual Bar
+    // Visual Composition Bar
     this.barBase = document.getElementById('barBase');
     this.barChina = document.getElementById('barChina');
     this.barFreight = document.getElementById('barFreight');
@@ -363,7 +359,8 @@ const UI = {
     this.calcBufferText = document.getElementById('calcBufferText');
     this.calcShippingText = document.getElementById('calcShippingText');
 
-    // Batch Elements
+    // Batch Elements (Mobile cards + Desktop table)
+    this.batchMobileCards = document.getElementById('batchMobileCards');
     this.batchTableBody = document.getElementById('batchTableBody');
     this.batchEmptyState = document.getElementById('batchEmptyState');
     this.batchTableContainer = document.getElementById('batchTableContainer');
@@ -377,7 +374,7 @@ const UI = {
     this.btnCopyBatch = document.getElementById('btnCopyBatch');
     this.btnClearBatch = document.getElementById('btnClearBatch');
 
-    // Settings Modal elements
+    // Settings Modal
     this.modalSettings = document.getElementById('modalSettings');
     this.btnCloseModal = document.getElementById('btnCloseModal');
     this.btnSaveModal = document.getElementById('btnSaveModal');
@@ -399,7 +396,12 @@ const UI = {
   },
 
   bindEvents() {
-    // Live calculation listeners for form inputs
+    // Mobile Tab switching
+    if (this.tabBtnCalc && this.tabBtnBatch) {
+      this.tabBtnCalc.addEventListener('click', () => this.switchMobileTab('calc'));
+      this.tabBtnBatch.addEventListener('click', () => this.switchMobileTab('batch'));
+    }
+
     const triggerRecalc = () => {
       this.syncStateFromInputs();
       this.calculateAndRender();
@@ -486,6 +488,9 @@ const UI = {
 
     // Action buttons
     this.btnSaveBatch.addEventListener('click', () => this.handleSaveToBatch());
+    if (this.btnStickySave) {
+      this.btnStickySave.addEventListener('click', () => this.handleSaveToBatch());
+    }
     this.btnClearForm.addEventListener('click', () => this.handleClearForm());
     this.btnCopyQuote.addEventListener('click', () => this.handleCopyQuote());
 
@@ -509,7 +514,7 @@ const UI = {
     // Theme Toggle
     this.btnThemeToggle.addEventListener('click', () => this.toggleTheme());
 
-    // Close modal on click outside
+    // Close modal on outside click
     this.modalSettings.addEventListener('click', (e) => {
       if (e.target === this.modalSettings) {
         this.closeSettingsModal();
@@ -522,6 +527,23 @@ const UI = {
         this.closeSettingsModal();
       }
     });
+  },
+
+  switchMobileTab(tab) {
+    state.currentMobileTab = tab;
+    if (window.innerWidth < 960) {
+      if (tab === 'calc') {
+        this.tabBtnCalc.classList.add('active');
+        this.tabBtnBatch.classList.remove('active');
+        this.sectionCalculator.style.display = 'grid';
+        this.sectionBatch.style.display = 'none';
+      } else {
+        this.tabBtnBatch.classList.add('active');
+        this.tabBtnCalc.classList.remove('active');
+        this.sectionCalculator.style.display = 'none';
+        this.sectionBatch.style.display = 'block';
+      }
+    }
   },
 
   syncStateFromInputs() {
@@ -568,7 +590,7 @@ const UI = {
         this.syncStateFromInputs();
         this.updateRouteVisualizer();
         this.calculateAndRender();
-        showToast(`Loaded preset: ${p.name}`, 'info');
+        showToast(`Loaded: ${p.name}`, 'info');
       });
       this.presetContainer.appendChild(chip);
     });
@@ -585,7 +607,7 @@ const UI = {
     this.routeLeg2Rate.textContent = `৳${leg2.toFixed(3)}/g`;
     this.routeLeg3Rate.textContent = `৳${leg3.toFixed(3)}/g`;
     this.routeBufferRate.textContent = `+৳${buffer.toFixed(2)}/g`;
-    this.badgeExchangeRate.innerHTML = `<span>¥1 = ৳${Number(state.settings.rmbRate).toFixed(2)}</span> <span class="text-hide-sm" style="opacity:0.65">· Edit</span>`;
+    this.badgeExchangeRate.innerHTML = `<span>¥1 = ৳${Number(state.settings.rmbRate).toFixed(2)}</span>`;
   },
 
   calculateAndRender() {
@@ -596,11 +618,17 @@ const UI = {
     this.outSellingPrice.textContent = formatBDT(res.sellingPriceBdt);
     this.outNetProfit.textContent = `+${formatBDT(res.netProfitBdt)}`;
 
+    // Mobile Sticky Bar sync
+    if (this.stickyLanded && this.stickySell) {
+      this.stickyLanded.textContent = formatBDT(res.totalLandedCostBdt);
+      this.stickySell.textContent = `Sell: ${formatBDT(res.sellingPriceBdt)}`;
+    }
+
     this.badgeMargin.textContent = `${res.effectiveMarginPct.toFixed(1)}% Margin`;
     this.badgeMarkup.textContent = `${res.markupPct.toFixed(1)}% Markup`;
     this.outTotalShippingRate.textContent = `৳${res.totalShippingRatePerGm.toFixed(3)} / gram total`;
 
-    // Micro Breakdown Table Values
+    // Micro Breakdown Table
     this.tableBaseCost.textContent = formatBDT(res.productBaseCostBdt);
     this.tableChinaCost.textContent = formatBDT(res.chinaDomesticCostBdt);
     this.tableFreightCost.textContent = formatBDT(res.forwarderFreightCostBdt);
@@ -609,33 +637,27 @@ const UI = {
     this.tableTotalShipping.textContent = formatBDT(res.totalShippingCostBdt);
     this.tableTotalLanded.textContent = formatBDT(res.totalLandedCostBdt);
 
-    // Micro Breakdown Calculation Formula Text
+    // Micro Breakdown Formula Text
     this.calcBaseText.textContent = `${formatRMB(res.priceRmb)} × ৳${Number(res.rmbRate).toFixed(2)}`;
     this.calcChinaText.textContent = `${res.weight}g × ৳${res.chinaRatePerGm.toFixed(4)}/g`;
     this.calcFreightText.textContent = `${res.weight}g × ৳${res.freightRatePerGm.toFixed(4)}/g`;
     this.calcBdText.textContent = `${res.weight}g × ৳${res.bdRatePerGm.toFixed(4)}/g`;
     this.calcBufferText.textContent = `${res.weight}g × ৳${res.bufferRatePerGm.toFixed(4)}/g`;
-    this.calcShippingText.textContent = `${res.shippingSharePct.toFixed(1)}% of landed cost`;
+    this.calcShippingText.textContent = `${res.shippingSharePct.toFixed(1)}% shipping`;
 
-    // Dynamic Visual Cost Composition Bar
+    // Cost Composition Bar
     const total = res.totalLandedCostBdt || 1;
-    const basePct = (res.productBaseCostBdt / total) * 100;
-    const chinaPct = (res.chinaDomesticCostBdt / total) * 100;
-    const freightPct = (res.forwarderFreightCostBdt / total) * 100;
-    const bdPct = (res.bdDomesticCostBdt / total) * 100;
-    const bufferPct = (res.safetyBufferCostBdt / total) * 100;
-
-    this.barBase.style.width = `${basePct}%`;
-    this.barChina.style.width = `${chinaPct}%`;
-    this.barFreight.style.width = `${freightPct}%`;
-    this.barBd.style.width = `${bdPct}%`;
-    this.barBuffer.style.width = `${bufferPct}%`;
+    this.barBase.style.width = `${(res.productBaseCostBdt / total) * 100}%`;
+    this.barChina.style.width = `${(res.chinaDomesticCostBdt / total) * 100}%`;
+    this.barFreight.style.width = `${(res.forwarderFreightCostBdt / total) * 100}%`;
+    this.barBd.style.width = `${(res.bdDomesticCostBdt / total) * 100}%`;
+    this.barBuffer.style.width = `${(res.safetyBufferCostBdt / total) * 100}%`;
   },
 
   handleSaveToBatch() {
     const res = CalcEngine.calculate(state.calculator);
     if (res.totalLandedCostBdt <= 0) {
-      showToast('Please enter a valid price and weight', 'error');
+      showToast('Enter a valid price and weight first', 'error');
       return;
     }
 
@@ -660,11 +682,6 @@ const UI = {
 
     this.renderBatchSummary();
     showToast(`Added "${itemName}" to batch!`, 'success');
-
-    // Scroll gently to batch section if user is on mobile
-    if (window.innerWidth < 768) {
-      this.batchTableContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
   },
 
   handleClearForm() {
@@ -700,7 +717,7 @@ Shipping Breakdown:
 Total Shipping Rate: ৳${res.totalShippingRatePerGm.toFixed(3)}/gm`;
 
     navigator.clipboard.writeText(quoteText).then(() => {
-      showToast('Full quote copied to clipboard!', 'success');
+      showToast('Quote copied to clipboard!', 'success');
     }).catch(() => {
       showToast('Could not access clipboard', 'error');
     });
@@ -708,9 +725,14 @@ Total Shipping Rate: ৳${res.totalShippingRatePerGm.toFixed(3)}/gm`;
 
   renderBatchSummary() {
     const items = state.batch;
+    if (this.tabBatchBadge) {
+      this.tabBatchBadge.textContent = items.length.toString();
+    }
+
     if (items.length === 0) {
       this.batchEmptyState.style.display = 'block';
       this.batchTableContainer.style.display = 'none';
+      if (this.batchMobileCards) this.batchMobileCards.innerHTML = '';
       this.statTotalItems.textContent = '0';
       this.statTotalWeight.textContent = '0.00 kg';
       this.statTotalCapital.textContent = '৳0';
@@ -721,7 +743,9 @@ Total Shipping Rate: ৳${res.totalShippingRatePerGm.toFixed(3)}/gm`;
     }
 
     this.batchEmptyState.style.display = 'none';
-    this.batchTableContainer.style.display = 'block';
+    if (window.innerWidth >= 768) {
+      this.batchTableContainer.style.display = 'block';
+    }
 
     let totalWeightGrams = 0;
     let totalCapital = 0;
@@ -729,13 +753,15 @@ Total Shipping Rate: ৳${res.totalShippingRatePerGm.toFixed(3)}/gm`;
     let totalProfit = 0;
 
     this.batchTableBody.innerHTML = '';
+    if (this.batchMobileCards) this.batchMobileCards.innerHTML = '';
 
-    items.forEach((item, index) => {
+    items.forEach((item) => {
       totalWeightGrams += item.weightGrams;
       totalCapital += item.landedCostBdt;
       totalRevenue += item.sellingPriceBdt;
       totalProfit += item.netProfitBdt;
 
+      // 1. Desktop Table Row
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td style="font-weight:700">
@@ -760,10 +786,53 @@ Total Shipping Rate: ৳${res.totalShippingRatePerGm.toFixed(3)}/gm`;
         </td>
       `;
       this.batchTableBody.appendChild(tr);
+
+      // 2. Mobile Responsive Card
+      if (this.batchMobileCards) {
+        const card = document.createElement('div');
+        card.className = 'batch-card';
+        card.innerHTML = `
+          <div class="batch-card-header">
+            <div>
+              <div class="batch-card-title">${item.name}</div>
+              <div class="text-dim font-mono" style="font-size:0.68rem">${item.date}</div>
+            </div>
+            <span class="batch-category-badge">${item.categoryName}</span>
+          </div>
+
+          <div class="batch-card-meta">
+            <div>
+              <div class="batch-card-metric-label">Weight</div>
+              <div class="batch-card-metric-val">${item.weightGrams}g</div>
+            </div>
+            <div>
+              <div class="batch-card-metric-label">Landed Cost</div>
+              <div class="batch-card-metric-val landed">${formatBDT(item.landedCostBdt)}</div>
+            </div>
+            <div>
+              <div class="batch-card-metric-label">Selling Price</div>
+              <div class="batch-card-metric-val">${formatBDT(item.sellingPriceBdt)}</div>
+            </div>
+          </div>
+
+          <div class="batch-card-footer">
+            <div class="batch-card-profit">Profit: +${formatBDT(item.netProfitBdt)} (${item.marginPercent.toFixed(1)}%)</div>
+            <div style="display:flex; gap:6px;">
+              <button class="btn-table-icon" title="Load into Calculator" data-load-id="${item.id}">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+              </button>
+              <button class="btn-table-icon delete" title="Remove" data-delete-id="${item.id}">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              </button>
+            </div>
+          </div>
+        `;
+        this.batchMobileCards.appendChild(card);
+      }
     });
 
-    // Attach row events
-    this.batchTableBody.querySelectorAll('[data-delete-id]').forEach(btn => {
+    // Attach row/card event listeners
+    document.querySelectorAll('[data-delete-id]').forEach(btn => {
       btn.addEventListener('click', () => {
         const id = btn.dataset.deleteId;
         state.batch = state.batch.filter(b => b.id !== id);
@@ -773,7 +842,7 @@ Total Shipping Rate: ৳${res.totalShippingRatePerGm.toFixed(3)}/gm`;
       });
     });
 
-    this.batchTableBody.querySelectorAll('[data-load-id]').forEach(btn => {
+    document.querySelectorAll('[data-load-id]').forEach(btn => {
       btn.addEventListener('click', () => {
         const id = btn.dataset.loadId;
         const item = state.batch.find(b => b.id === id);
@@ -785,13 +854,14 @@ Total Shipping Rate: ৳${res.totalShippingRatePerGm.toFixed(3)}/gm`;
           this.syncStateFromInputs();
           this.updateRouteVisualizer();
           this.calculateAndRender();
+          this.switchMobileTab('calc');
           showToast(`Loaded "${item.name}" into calculator`, 'info');
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }
       });
     });
 
-    // Update KPI tiles
+    // KPI Metrics
     this.statTotalItems.textContent = items.length.toString();
     this.statTotalWeight.textContent = `${(totalWeightGrams / 1000).toFixed(2)} kg`;
     this.statTotalCapital.textContent = formatBDT(totalCapital, 0);
@@ -881,7 +951,7 @@ Exported from Taobao ➔ Rajshahi Landed Cost Engine`;
   },
 
   // ---------------------------------------------------------------------------
-  // Settings & Onboarding Modal Logic
+  // Settings Modal / Mobile Bottom Sheet
   // ---------------------------------------------------------------------------
   openSettingsModal() {
     this.settingRmbRate.value = state.settings.rmbRate;
@@ -928,7 +998,6 @@ Exported from Taobao ➔ Rajshahi Landed Cost Engine`;
       this.categoryTableBody.appendChild(tr);
     });
 
-    // Add listeners inside modal category table
     this.categoryTableBody.querySelectorAll('.category-rate-input').forEach(inp => {
       inp.addEventListener('input', (e) => {
         const idx = e.target.dataset.catIdx;
@@ -942,7 +1011,7 @@ Exported from Taobao ➔ Rajshahi Landed Cost Engine`;
       btn.addEventListener('click', () => {
         const idx = parseInt(btn.dataset.catDelete, 10);
         if (state.categories.length <= 1) {
-          showToast('You must keep at least one category', 'error');
+          showToast('Keep at least one category', 'error');
           return;
         }
         state.categories.splice(idx, 1);
@@ -982,7 +1051,6 @@ Exported from Taobao ➔ Rajshahi Landed Cost Engine`;
   },
 
   handleSaveSettings() {
-    // Read category inputs
     const updatedCategories = [];
     const rows = this.categoryTableBody.querySelectorAll('.category-row');
     rows.forEach((row, i) => {
@@ -1001,7 +1069,6 @@ Exported from Taobao ➔ Rajshahi Landed Cost Engine`;
 
     state.saveCategories(updatedCategories);
 
-    // Save settings
     const newSettings = {
       rmbRate: Math.max(0.01, parseFloat(this.settingRmbRate.value) || 18.00),
       chinaDomesticRmb: Math.max(0, parseFloat(this.settingChinaRmb.value) || 0),
@@ -1019,11 +1086,11 @@ Exported from Taobao ➔ Rajshahi Landed Cost Engine`;
     this.updateRouteVisualizer();
     this.calculateAndRender();
     this.closeSettingsModal();
-    showToast('Settings saved & applied!', 'success');
+    showToast('Settings saved!', 'success');
   },
 
   handleResetSettings() {
-    if (confirm('Reset all exchange rates, courier fees, and categories to factory defaults?')) {
+    if (confirm('Reset all exchange rates, courier fees, and categories to defaults?')) {
       state.settings = { ...DEFAULT_SETTINGS };
       state.categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
       state.saveSettings(state.settings);
@@ -1033,7 +1100,7 @@ Exported from Taobao ➔ Rajshahi Landed Cost Engine`;
       this.renderCategorySelect();
       this.updateRouteVisualizer();
       this.calculateAndRender();
-      showToast('Reset to factory defaults', 'info');
+      showToast('Reset to defaults', 'info');
     }
   },
 
@@ -1042,17 +1109,15 @@ Exported from Taobao ➔ Rajshahi Landed Cost Engine`;
     if (!hasOnboarded) {
       setTimeout(() => {
         this.openSettingsModal();
-      }, 500);
+      }, 400);
     }
   },
 
   // ---------------------------------------------------------------------------
-  // Theme Toggle
+  // Theme Management
   // ---------------------------------------------------------------------------
   getInitialTheme() {
-    const saved = localStorage.getItem(STORAGE_KEYS.THEME);
-    if (saved) return saved;
-    return 'dark'; // Dark executive theme default
+    return localStorage.getItem(STORAGE_KEYS.THEME) || 'dark';
   },
 
   applyTheme(theme) {
@@ -1064,59 +1129,10 @@ Exported from Taobao ➔ Rajshahi Landed Cost Engine`;
     const current = document.documentElement.getAttribute('data-theme') || 'dark';
     const next = current === 'dark' ? 'light' : 'dark';
     this.applyTheme(next);
-    showToast(`Switched to ${next} theme`, 'info');
-  },
-
-  // ---------------------------------------------------------------------------
-  // PWA & Network Offline Handlers
-  // ---------------------------------------------------------------------------
-  initServiceWorker() {
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-          .then((reg) => {
-            console.log('ServiceWorker registration successful with scope: ', reg.scope);
-            this.setPwaStatus(true);
-          })
-          .catch((err) => {
-            console.log('ServiceWorker registration failed: ', err);
-            this.setPwaStatus(false);
-          });
-      });
-    }
-  },
-
-  initNetworkStatus() {
-    const updateOnlineStatus = () => {
-      const isOnline = navigator.onLine;
-      const dot = document.querySelector('.status-dot');
-      const text = document.getElementById('pwaStatusText');
-      if (dot && text) {
-        if (isOnline) {
-          dot.classList.remove('offline');
-          text.textContent = 'PWA Ready';
-        } else {
-          dot.classList.add('offline');
-          text.textContent = 'Offline Mode';
-          showToast('Working in offline mode from cache', 'info');
-        }
-      }
-    };
-
-    window.addEventListener('online', updateOnlineStatus);
-    window.addEventListener('offline', updateOnlineStatus);
-    updateOnlineStatus();
-  },
-
-  setPwaStatus(isReady) {
-    const text = document.getElementById('pwaStatusText');
-    if (text && isReady) {
-      text.textContent = 'PWA Ready';
-    }
+    showToast(`Switched to ${next} mode`, 'info');
   }
 };
 
-// Start application when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
   UI.init();
 });
