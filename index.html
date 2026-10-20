@@ -40,7 +40,7 @@
       <div class="header-actions">
         <!-- Live Exchange Rate Badge (Tap to open settings) -->
         <button type="button" class="badge-rate" id="badgeExchangeRate" title="Adjust exchange rate & courier settings">
-          <span>¥1 = ৳18.00</span>
+          <span>¥1 = ৳19.00</span>
         </button>
 
         <!-- Dark / Light Theme Toggle -->
@@ -70,492 +70,278 @@
   </header>
 
   <main class="container">
-    
-    <!-- Mobile Segmented Navigation Tabs (< 960px) -->
-    <nav class="mobile-tab-nav" aria-label="Mobile Navigation">
-      <button type="button" class="tab-btn active" id="tabBtnCalc">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="16" y1="14" x2="16" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></svg>
-        Calculator
-      </button>
-      <button type="button" class="tab-btn" id="tabBtnBatch">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-        Batch Orders
-        <span class="tab-badge" id="tabBatchBadge">0</span>
-      </button>
-    </nav>
 
-    <!-- Route Visualizer Pipeline Banner -->
-    <section class="route-visualizer" aria-label="Logistics Pipeline">
-      <div class="route-steps-wrapper">
-        <div class="route-step">
-          <div class="route-step-node">1</div>
-          <div class="route-step-info">
-            <span class="route-step-title">Taobao (China)</span>
-            <span class="route-step-rate">RMB (¥)</span>
-          </div>
+    <!-- 1. SIMPLIFIED TOP: CATEGORY SELECTOR (STEP 1) -->
+    <section class="simple-category-bar" id="sectionProductChoice" aria-label="Product Category Selection">
+      <div class="category-bar-header">
+        <div class="category-bar-title-wrap">
+          <span class="category-step-badge">1. Category</span>
+          <span class="category-bar-title">Choose Product Type:</span>
         </div>
-
-        <div class="route-step-connector"></div>
-
-        <div class="route-step">
-          <div class="route-step-node">2</div>
-          <div class="route-step-info">
-            <span class="route-step-title">Guangzhou Hub</span>
-            <span class="route-step-rate" id="routeLeg1Rate">৳0.054/g</span>
-          </div>
+        <div class="category-active-indicator" id="statusSubtitle">
+          Forwarder freight: ৳900/kg (৳0.90/g) · Guangzhou ➔ Dhaka Hub
         </div>
+      </div>
 
-        <div class="route-step-connector"></div>
-
-        <div class="route-step">
-          <div class="route-step-node">3</div>
-          <div class="route-step-info">
-            <span class="route-step-title">Dhaka Hub</span>
-            <span class="route-step-rate" id="routeLeg2Rate">৳0.980/g</span>
+      <div class="simple-category-grid" role="radiogroup" aria-label="Product Categories">
+        <button type="button" class="choice-card simple-cat-card" data-category="clothing" role="radio" aria-checked="false" id="choiceCardClothing">
+          <span class="simple-cat-icon">👗</span>
+          <div class="simple-cat-text">
+            <span class="simple-cat-name">Clothing</span>
+            <span class="simple-cat-sub">Apparel &amp; Dresses</span>
           </div>
-        </div>
+          <span class="simple-cat-check">✓</span>
+        </button>
 
-        <div class="route-step-connector"></div>
-
-        <div class="route-step">
-          <div class="route-step-node">4</div>
-          <div class="route-step-info">
-            <span class="route-step-title">Rajshahi Hub</span>
-            <span class="route-step-rate" id="routeLeg3Rate">৳0.050/g <span id="routeBufferRate" class="text-dim" style="font-size:0.62rem">+৳0.05 buffer</span></span>
+        <button type="button" class="choice-card simple-cat-card selected" data-category="footwear" role="radio" aria-checked="true" id="choiceCardFootwear">
+          <span class="simple-cat-icon">👟</span>
+          <div class="simple-cat-text">
+            <span class="simple-cat-name">Footwear</span>
+            <span class="simple-cat-sub">Shoes &amp; Sneakers</span>
           </div>
-        </div>
+          <span class="simple-cat-check">✓</span>
+        </button>
+
+        <button type="button" class="choice-card simple-cat-card" data-category="jwelry" role="radio" aria-checked="false" id="choiceCardJwelry">
+          <span class="simple-cat-icon">💍</span>
+          <div class="simple-cat-text">
+            <span class="simple-cat-name">Jewelry</span>
+            <span class="simple-cat-sub">Accessories &amp; Rings</span>
+          </div>
+          <span class="simple-cat-check">✓</span>
+        </button>
+
+        <button type="button" class="choice-card simple-cat-card" data-category="bags" role="radio" aria-checked="false" id="choiceCardBags">
+          <span class="simple-cat-icon">👜</span>
+          <div class="simple-cat-text">
+            <span class="simple-cat-name">Bags</span>
+            <span class="simple-cat-sub">Handbags &amp; Totes</span>
+          </div>
+          <span class="simple-cat-check">✓</span>
+        </button>
       </div>
     </section>
 
-    <!-- SECTION 1: Calculator & Breakdown -->
-    <div class="main-grid" id="sectionCalculator">
+    <!-- 2. SIMPLIFIED 2-COLUMN CALCULATOR WORKSPACE -->
+    <div id="calculatorSuite" class="simple-calculator-suite">
+      <div class="simple-calc-grid">
 
-      <!-- LEFT COLUMN: Live Calculator Engine Form -->
-      <section class="card" aria-label="Product Pricing Calculator">
-        <div class="card-header">
-          <div>
-            <h2 class="card-title">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="16" y1="14" x2="16" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></svg>
-              Live Calculator Engine
-            </h2>
-            <p class="card-subtitle">Real-time dynamic BDT/gram unit landed cost</p>
-          </div>
-        </div>
-
-        <!-- Quick Presets -->
-        <div class="preset-section">
-          <div class="preset-label">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            Quick Presets
-          </div>
-          <div class="preset-scroll" id="presetContainer">
-            <!-- Dynamically populated via JS -->
-          </div>
-        </div>
-
-        <form id="calculatorForm" onsubmit="event.preventDefault();">
-          
-          <!-- Product Name / SKU -->
-          <div class="form-group">
-            <label class="form-label" for="productName">
-              <span>Item Name or SKU (Optional)</span>
-              <span class="form-label-tag">Session batch tag</span>
-            </label>
-            <div class="input-wrap">
-              <div class="input-affix prefix">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-              </div>
-              <input type="text" id="productName" class="input-field" placeholder="e.g. Summer Chiffon Dress" autocomplete="off" />
+        <!-- LEFT COLUMN: Product Inputs & Pricing -->
+        <section class="simple-card simple-input-card" id="panelActiveItem">
+          <div class="simple-card-header">
+            <div class="simple-header-title">
+              <span class="simple-step-num">Step 2</span>
+              <h3>Enter Item Details</h3>
             </div>
+            <span class="simple-header-hint">Direct from Taobao</span>
           </div>
 
-          <!-- Leg 2 Category Selector -->
-          <div class="form-group">
-            <label class="form-label" for="categorySelect">
-              <span>Product Category (Forwarder Rate)</span>
-              <span class="form-label-tag">Guangzhou ➔ Dhaka</span>
-            </label>
-            <div class="input-wrap">
-              <div class="input-affix prefix">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          <div class="simple-card-body">
+            <!-- Optional Product Name -->
+            <div class="simple-field">
+              <label class="simple-label" for="productName">Product Description (Optional)</label>
+              <div class="simple-input-wrap">
+                <input type="text" id="productName" class="simple-input" placeholder="e.g. Nike Air Sneaker or Silk Blouse" />
               </div>
-              <select id="categorySelect" class="input-field" aria-label="Select Category">
-                <!-- Dynamically populated -->
-              </select>
             </div>
+
+            <!-- Two Main Inputs: Taobao Price & Weight -->
+            <div class="simple-inputs-row">
+              <div class="simple-field">
+                <label class="simple-label" for="priceRmb">
+                  Taobao Price (¥)
+                </label>
+                <div class="simple-input-wrap highlight-price">
+                  <span class="simple-affix-left">¥</span>
+                  <input type="number" id="priceRmb" class="simple-input hero-input" value="10" min="0" step="any" inputmode="decimal" />
+                </div>
+              </div>
+
+              <div class="simple-field">
+                <label class="simple-label" for="weightGrams">
+                  Item Weight (Grams)
+                </label>
+                <div class="simple-input-wrap highlight-weight">
+                  <input type="number" id="weightGrams" class="simple-input hero-input" value="100" min="0" step="1" inputmode="numeric" />
+                  <span class="simple-affix-right">gm</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Weight Presets -->
+            <div class="simple-quick-row">
+              <span class="simple-quick-label">Quick Weight:</span>
+              <div class="simple-pills-list">
+                <button type="button" class="pill-btn" data-weight-quick="100">100g</button>
+                <button type="button" class="pill-btn" data-weight-quick="250">250g</button>
+                <button type="button" class="pill-btn" data-weight-quick="500">500g</button>
+                <button type="button" class="pill-btn" data-weight-quick="850">850g</button>
+                <button type="button" class="pill-btn" data-weight-quick="1000">1 kg</button>
+                <button type="button" class="pill-btn" data-weight-quick="+100">+100g</button>
+              </div>
+            </div>
+
+            <!-- Fixed Profit Markup -->
+            <div class="simple-markup-block">
+              <div class="simple-field">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <label class="simple-label" for="flatMarkup">Your Profit Markup (Fixed TK)</label>
+                  <span class="simple-tag-profit">Net Profit</span>
+                </div>
+                <div class="simple-input-wrap highlight-profit">
+                  <span class="simple-affix-left">+৳</span>
+                  <input type="number" id="flatMarkup" class="simple-input hero-input" value="300" min="0" step="10" inputmode="numeric" />
+                  <span class="simple-affix-right">TK</span>
+                </div>
+              </div>
+
+              <div class="simple-quick-row" style="margin-top:8px;">
+                <span class="simple-quick-label">Presets:</span>
+                <div class="simple-pills-list">
+                  <button type="button" class="gwpc-pill-btn" data-markup="150">+৳150</button>
+                  <button type="button" class="gwpc-pill-btn" data-markup="200">+৳200</button>
+                  <button type="button" class="gwpc-pill-btn active" data-markup="300">+৳300</button>
+                  <button type="button" class="gwpc-pill-btn" data-markup="400">+৳400</button>
+                  <button type="button" class="gwpc-pill-btn" data-markup="500">+৳500</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sleek Collapsible Rates & Shipping Drawer -->
+            <details class="simple-rates-drawer" id="panelSessionSettings">
+              <summary class="simple-rates-summary">
+                <div class="summary-left">
+                  <span>⚙️ Shipping Rates &amp; Currency Settings</span>
+                  <span class="rates-summary-pill" id="gwpcCombinedFactor">0.950 BDT/g</span>
+                </div>
+                <span class="summary-toggle-arrow">▾</span>
+              </summary>
+
+              <div class="simple-rates-content">
+                <div class="rates-mini-grid">
+                  <div class="simple-field">
+                    <label class="simple-label-sub" for="settingRmbRate">RMB Rate (¥1 = ৳)</label>
+                    <div class="simple-input-wrap mini">
+                      <span class="simple-affix-left">৳</span>
+                      <input type="number" id="settingRmbRate" class="simple-input mini" value="19.0" min="0.1" step="0.05" />
+                    </div>
+                  </div>
+
+                  <div class="simple-field">
+                    <label class="simple-label-sub" for="settingSundarbanBdt">
+                      Sundarban Courier (10kg)
+                      <span class="mini-calc" id="pillSundarbanRate">(=0.05/g)</span>
+                    </label>
+                    <div class="simple-input-wrap mini">
+                      <span class="simple-affix-left">৳</span>
+                      <input type="number" id="settingSundarbanBdt" class="simple-input mini" value="500" min="0" step="10" />
+                    </div>
+                  </div>
+
+                  <div class="simple-field">
+                    <label class="simple-label-sub" for="settingCostPerKg">
+                      Category Freight/KG
+                      <span class="mini-calc" id="pillIntlRate">(=0.90/g)</span>
+                    </label>
+                    <div class="simple-input-wrap mini">
+                      <span class="simple-affix-left">৳</span>
+                      <input type="number" id="settingCostPerKg" class="simple-input mini" value="900" min="1" step="10" />
+                    </div>
+                  </div>
+
+                  <div class="simple-field" style="display:none;">
+                    <select id="categorySelect">
+                      <option value="clothing">Clothing</option>
+                      <option value="footwear">Footwear</option>
+                      <option value="jwelry">Jwelry</option>
+                      <option value="bags">Bags</option>
+                    </select>
+                  </div>
+
+                  <div class="simple-field">
+                    <label class="simple-label-sub" for="settingChinaRmb">
+                      China Domestic (10kg)
+                      <span class="mini-calc" id="pillChinaRate">(=0.00/g)</span>
+                    </label>
+                    <div class="simple-input-wrap mini">
+                      <span class="simple-affix-left">¥</span>
+                      <input type="number" id="settingChinaRmb" class="simple-input mini" value="0" min="0" step="5" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="rates-footer-info" style="margin-top:8px;">
+                  <span style="font-size:0.75rem; color:var(--text-dim);" id="gwpcFactorFormula">γ_intl (0.90) + γ_local (0.05)</span>
+                  <input type="hidden" id="settingBuffer" value="0.00" />
+                </div>
+              </div>
+            </details>
+
+          </div>
+        </section>
+
+        <!-- RIGHT COLUMN: Instant Result & Customer Quote -->
+        <section class="simple-card simple-result-card" id="panelInstantResult">
+          <div class="simple-card-header">
+            <div class="simple-header-title">
+              <span class="simple-step-num step-result">Step 3</span>
+              <h3>Selling Price &amp; Profit</h3>
+            </div>
+            <span class="simple-badge-live">Instant Result</span>
           </div>
 
-          <!-- Dual Column: Taobao Price (RMB) & Product Weight (Grams) -->
-          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+          <div class="simple-card-body">
             
-            <!-- Taobao Price in RMB -->
-            <div class="form-group">
-              <label class="form-label" for="priceRmb">
-                <span>Taobao Price</span>
-                <span class="form-label-tag" style="color:var(--color-amber-light)">RMB (¥)</span>
-              </label>
-              <div class="input-wrap">
-                <div class="input-affix prefix affix-rmb">¥</div>
-                <input type="number" id="priceRmb" class="input-field" placeholder="0.00" value="65" min="0" step="any" inputmode="decimal" />
+            <!-- Hero Selling Price Banner -->
+            <div class="simple-selling-hero">
+              <span class="selling-hero-label">RECOMMENDED SELLING PRICE</span>
+              <div class="selling-hero-val" id="gwpcSellingPrice">৳585 TK</div>
+              <div class="selling-hero-profit">
+                <span class="profit-badge" id="gwpcNetProfit">+৳300 TK</span>
+                <span class="profit-subtext">Guaranteed Profit</span>
               </div>
             </div>
 
-            <!-- Weight in Grams -->
-            <div class="form-group">
-              <label class="form-label" for="weightGrams">
-                <span>Net Weight</span>
-                <span class="form-label-tag">Grams (g)</span>
-              </label>
-              <div class="input-wrap">
-                <input type="number" id="weightGrams" class="input-field" placeholder="0" value="350" min="0" step="1" inputmode="numeric" />
-                <div class="input-affix">gm</div>
+            <!-- Transparent Cost Breakdown -->
+            <div class="simple-breakdown-card">
+              <div class="breakdown-row">
+                <span class="breakdown-name">Taobao Base Purchase:</span>
+                <span class="breakdown-val" id="gwpcBaseProductText">190 TK (10 ¥ × 19)</span>
+              </div>
+              <div class="breakdown-row">
+                <span class="breakdown-name">All Shipping to Rajshahi:</span>
+                <span class="breakdown-val" id="gwpcShippingText">95 TK (100g × 0.95/g)</span>
+              </div>
+              <div class="breakdown-divider"></div>
+              <div class="breakdown-row highlight-total">
+                <span class="breakdown-name">TOTAL LANDED COST:</span>
+                <span class="breakdown-val total" id="gwpcTotalLanded">285 <span style="font-size:0.85rem">TK</span></span>
+              </div>
+              <div class="breakdown-row" style="font-size:0.78rem; color:var(--text-dim);">
+                <span>Pricing Formula:</span>
+                <span class="font-mono" id="gwpcSellingFormula">৳285 (Landed) + ৳300 (Markup)</span>
               </div>
             </div>
 
-          </div>
-
-          <!-- Quick Weight Adjustment Steppers -->
-          <div class="form-group" style="margin-top:-4px; margin-bottom:16px;">
-            <div class="quick-pills">
-              <button type="button" class="pill-btn" data-weight-quick="100">100g</button>
-              <button type="button" class="pill-btn" data-weight-quick="250">250g</button>
-              <button type="button" class="pill-btn" data-weight-quick="500">500g</button>
-              <button type="button" class="pill-btn" data-weight-quick="1000">1.0 kg</button>
-              <button type="button" class="pill-btn" data-weight-quick="+50">+50g</button>
-              <button type="button" class="pill-btn" data-weight-quick="+100">+100g</button>
-            </div>
-          </div>
-
-          <!-- Target Profit Mode Toggle -->
-          <div class="form-group">
-            <label class="form-label">
-              <span>Target Profit Strategy</span>
-              <span class="form-label-tag">Pricing Mode</span>
-            </label>
-            <div class="toggle-group">
-              <button type="button" class="toggle-btn active" id="togglePercent">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
-                Target Margin %
+            <!-- Action Buttons -->
+            <div class="simple-actions-grid">
+              <button type="button" class="btn btn-primary btn-copy-hero" id="btnCopyQuote">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy Customer Quote
               </button>
-              <button type="button" class="toggle-btn" id="toggleFlat">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                Flat Markup (BDT)
+              <button type="button" class="btn btn-ghost" id="btnClearForm" style="height:42px;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                Reset Calculator
               </button>
             </div>
 
-            <!-- Percent Margin Controls -->
-            <div id="containerPercent">
-              <div class="input-wrap">
-                <div class="input-affix prefix">Target Margin</div>
-                <input type="number" id="marginPercent" class="input-field" value="30" min="0" max="95" step="1" inputmode="numeric" />
-                <div class="input-affix">%</div>
-              </div>
-
-              <!-- Slider + quick margin chips -->
-              <div class="slider-container">
-                <input type="range" id="sliderMargin" class="range-slider" min="5" max="75" value="30" step="1" aria-label="Margin slider" />
-              </div>
-              <div class="quick-pills" style="margin-top:6px;">
-                <button type="button" class="pill-btn" data-margin-quick="20">20%</button>
-                <button type="button" class="pill-btn" data-margin-quick="25">25%</button>
-                <button type="button" class="pill-btn" data-margin-quick="30">30%</button>
-                <button type="button" class="pill-btn" data-margin-quick="40">40%</button>
-                <button type="button" class="pill-btn" data-margin-quick="50">50%</button>
-              </div>
-            </div>
-
-            <!-- Flat Markup Controls -->
-            <div id="containerFlat" style="display:none;">
-              <div class="input-wrap">
-                <div class="input-affix prefix">Flat Markup</div>
-                <input type="number" id="flatMarkup" class="input-field" value="400" min="0" step="10" inputmode="numeric" />
-                <div class="input-affix">BDT ৳</div>
-              </div>
-            </div>
           </div>
+        </section>
 
-          <!-- Quick Action Buttons -->
-          <div class="btn-grid">
-            <button type="button" class="btn btn-primary" id="btnSaveBatch">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              Save to Batch
-            </button>
-            <div style="display:flex; gap:8px;">
-              <button type="button" class="btn btn-secondary" id="btnCopyQuote" title="Copy formatted quote text" style="flex:1;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                Copy
-              </button>
-              <button type="button" class="btn btn-ghost" id="btnClearForm" title="Clear inputs" style="flex:1;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                Clear
-              </button>
-            </div>
-          </div>
-
-        </form>
-      </section>
-
-      <!-- RIGHT COLUMN: Hero Card & Micro-Breakdown -->
-      <section aria-label="Calculation Outputs">
-        
-        <!-- Hero Output Card -->
-        <div class="hero-card">
-          <div class="hero-header">
-            <span class="hero-badge">
-              Live Calculation Output
-            </span>
-            <span class="font-mono text-dim" id="outTotalShippingRate" style="font-size:0.75rem">৳1.134 / gram</span>
-          </div>
-
-          <!-- Dual Hero Metric Boxes -->
-          <div class="hero-metrics-grid">
-            
-            <!-- Unit Landed Cost -->
-            <div class="hero-metric-box">
-              <span class="hero-metric-label">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-                Total Landed Cost
-              </span>
-              <div class="hero-metric-val" id="outLandedCost">
-                <span class="curr">৳</span>0.00
-              </div>
-              <span class="hero-metric-sub">Base purchase + All shipping legs</span>
-            </div>
-
-            <!-- Suggested Selling Price -->
-            <div class="hero-metric-box highlight">
-              <span class="hero-metric-label" style="color:var(--color-emerald-light)">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-                Suggested Selling Price
-              </span>
-              <div class="hero-metric-val" style="color:var(--color-emerald-light)" id="outSellingPrice">
-                <span class="curr">৳</span>0.00
-              </div>
-              <span class="hero-metric-sub" style="color:var(--color-emerald-light)">Target price in Rajshahi/BD</span>
-            </div>
-
-          </div>
-
-          <!-- Net Profit Pill Banner -->
-          <div class="profit-banner">
-            <div class="profit-banner-title">
-              <span class="profit-title-text">Net Profit per Unit:</span>
-              <span class="profit-amount" id="outNetProfit">+৳0.00</span>
-            </div>
-            <div class="profit-badges">
-              <span class="badge-profit-pill" id="badgeMargin">30.0% Margin</span>
-              <span class="badge-profit-pill" id="badgeMarkup" style="background:rgba(6, 182, 212, 0.18); color:var(--color-cyan-light); border-color:rgba(6, 182, 212, 0.3)">42.8% Markup</span>
-            </div>
-          </div>
-
-          <!-- Cost Composition Bar -->
-          <div class="cost-bar-wrapper">
-            <div class="cost-bar-header">
-              <span>Cost Composition Distribution</span>
-              <span class="font-mono" id="calcShippingText">25.3% shipping</span>
-            </div>
-            <div class="cost-bar">
-              <div class="cost-segment base" id="barBase" style="width: 70%;" title="Product Base Cost"></div>
-              <div class="cost-segment china" id="barChina" style="width: 2%;" title="Leg 1: China Domestic"></div>
-              <div class="cost-segment freight" id="barFreight" style="width: 22%;" title="Leg 2: Forwarder Freight"></div>
-              <div class="cost-segment bd" id="barBd" style="width: 3%;" title="Leg 3: BD Domestic Courier"></div>
-              <div class="cost-segment buffer" id="barBuffer" style="width: 3%;" title="Safety Buffer"></div>
-            </div>
-            <div class="cost-legend">
-              <div class="legend-item"><span class="legend-dot" style="background:var(--color-amber)"></span> Base Item</div>
-              <div class="legend-item"><span class="legend-dot" style="background:var(--color-purple)"></span> Leg 1 China</div>
-              <div class="legend-item"><span class="legend-dot" style="background:var(--color-cyan)"></span> Leg 2 Freight</div>
-              <div class="legend-item"><span class="legend-dot" style="background:var(--color-blue)"></span> Leg 3 BD Hub</div>
-              <div class="legend-item"><span class="legend-dot" style="background:var(--color-rose)"></span> Safety Buffer</div>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Micro-Breakdown Detailed Accordion Card -->
-        <div class="card breakdown-card">
-          <div class="card-header" style="margin-bottom:10px;">
-            <h3 class="card-title" style="font-size:1rem;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-              Micro-Breakdown & Formulas
-            </h3>
-            <span class="font-mono text-dim" style="font-size:0.72rem">Dynamic /gm Model</span>
-          </div>
-
-          <table class="breakdown-table">
-            <tbody>
-              <tr>
-                <td class="breakdown-col-label">
-                  <strong>Base Item Purchase</strong>
-                  <div class="text-dim" style="font-size:0.68rem">Taobao Price × Exchange Rate</div>
-                </td>
-                <td class="breakdown-col-calc" id="calcBaseText">¥65.00 × ৳18.00</td>
-                <td class="breakdown-col-val" id="tableBaseCost">৳1,170.00</td>
-              </tr>
-              <tr>
-                <td class="breakdown-col-label">
-                  <strong>Leg 1: China Domestic</strong>
-                  <div class="text-dim" style="font-size:0.68rem">Supplier/Friend ➔ Guangzhou Hub</div>
-                </td>
-                <td class="breakdown-col-calc" id="calcChinaText">350g × ৳0.0540/g</td>
-                <td class="breakdown-col-val" id="tableChinaCost">৳18.90</td>
-              </tr>
-              <tr>
-                <td class="breakdown-col-label">
-                  <strong>Leg 2: Forwarder Freight</strong>
-                  <div class="text-dim" style="font-size:0.68rem">Guangzhou Hub ➔ Dhaka Warehouse</div>
-                </td>
-                <td class="breakdown-col-calc" id="calcFreightText">350g × ৳0.9800/g</td>
-                <td class="breakdown-col-val" id="tableFreightCost">৳343.00</td>
-              </tr>
-              <tr>
-                <td class="breakdown-col-label">
-                  <strong>Leg 3: BD Domestic Delivery</strong>
-                  <div class="text-dim" style="font-size:0.68rem">Dhaka Hub ➔ Rajshahi Hub</div>
-                </td>
-                <td class="breakdown-col-calc" id="calcBdText">350g × ৳0.0500/g</td>
-                <td class="breakdown-col-val" id="tableBdCost">৳17.50</td>
-              </tr>
-              <tr>
-                <td class="breakdown-col-label">
-                  <strong>Packaging & Safety Buffer</strong>
-                  <div class="text-dim" style="font-size:0.68rem">Cartons, bubble wrap & contingency</div>
-                </td>
-                <td class="breakdown-col-calc" id="calcBufferText">350g × ৳0.0500/g</td>
-                <td class="breakdown-col-val" id="tableBufferCost">৳17.50</td>
-              </tr>
-              <tr style="border-top:1px dashed var(--border-subtle);">
-                <td class="breakdown-col-label" style="color:var(--color-cyan-light); font-weight:700;">
-                  Total Shipping Cost
-                </td>
-                <td class="breakdown-col-calc" style="color:var(--color-cyan-light);">All 4 Legs</td>
-                <td class="breakdown-col-val" style="color:var(--color-cyan-light);" id="tableTotalShipping">৳396.90</td>
-              </tr>
-              <tr class="breakdown-total-row">
-                <td class="breakdown-col-label" style="color:var(--text-main);">
-                  FINAL TOTAL LANDED COST
-                </td>
-                <td class="breakdown-col-calc" style="color:var(--color-emerald-light);">Base + Shipping</td>
-                <td class="breakdown-col-val" style="color:var(--color-emerald-light); font-size:1.02rem;" id="tableTotalLanded">৳1,566.90</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-      </section>
-
+      </div>
     </div>
-
-    <!-- SECTION 2: Session Batch Summary Section -->
-    <section class="card batch-section" id="sectionBatch" aria-label="Session Batch Summary">
-      <div class="card-header">
-        <div>
-          <h2 class="card-title">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-            Session Batch Evaluation & Shipment Orders
-          </h2>
-          <p class="card-subtitle">Aggregate multi-item order metrics for Rajshahi delivery</p>
-        </div>
-
-        <div class="batch-btn-group">
-          <button type="button" class="btn btn-secondary btn-sm" id="btnExportCsv" title="Export batch list to CSV">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            CSV
-          </button>
-          <button type="button" class="btn btn-secondary btn-sm" id="btnCopyBatch" title="Copy formatted summary to clipboard">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-            Copy
-          </button>
-          <button type="button" class="btn btn-danger-ghost btn-sm" id="btnClearBatch" title="Clear all items in current batch">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-            Clear
-          </button>
-        </div>
-      </div>
-
-      <!-- KPI Summary Tiles -->
-      <div class="batch-stats-grid">
-        <div class="stat-tile">
-          <span class="stat-tile-label">Total Items</span>
-          <span class="stat-tile-val" id="statTotalItems">0</span>
-          <span class="stat-tile-sub">In current batch</span>
-        </div>
-        <div class="stat-tile">
-          <span class="stat-tile-label">Total Weight</span>
-          <span class="stat-tile-val" id="statTotalWeight">0.00 kg</span>
-          <span class="stat-tile-sub">Consolidated freight</span>
-        </div>
-        <div class="stat-tile">
-          <span class="stat-tile-label">Capital Required</span>
-          <span class="stat-tile-val accent" id="statTotalCapital">৳0</span>
-          <span class="stat-tile-sub">Total Landed Cost</span>
-        </div>
-        <div class="stat-tile">
-          <span class="stat-tile-label">Projected Revenue</span>
-          <span class="stat-tile-val" id="statTotalRevenue">৳0</span>
-          <span class="stat-tile-sub">Selling value in BD</span>
-        </div>
-        <div class="stat-tile">
-          <span class="stat-tile-label">Projected Profit</span>
-          <span class="stat-tile-val accent" id="statTotalProfit">৳0</span>
-          <span class="stat-tile-sub font-mono" id="statAvgMargin">0% Avg Margin</span>
-        </div>
-      </div>
-
-      <!-- Empty State -->
-      <div class="empty-state" id="batchEmptyState">
-        <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.5">
-          <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
-          <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-        </svg>
-        <h3 class="empty-state-title">No items added to session batch yet</h3>
-        <p class="empty-state-text">Use the calculator to compute landed cost, then tap <strong>"Save to Batch"</strong> to compile multi-item orders.</p>
-      </div>
-
-      <!-- Mobile Batch Cards View (< 768px) -->
-      <div class="batch-mobile-cards" id="batchMobileCards">
-        <!-- Dynamically populated via JS -->
-      </div>
-
-      <!-- Desktop Batch Table (>= 768px) -->
-      <div class="batch-table-container" id="batchTableContainer">
-        <table class="batch-table">
-          <thead>
-            <tr>
-              <th>Item / SKU</th>
-              <th>Category</th>
-              <th>Weight</th>
-              <th>Taobao (¥)</th>
-              <th>Landed Cost (৳)</th>
-              <th>Selling Price (৳)</th>
-              <th>Net Profit (৳)</th>
-              <th style="text-align:right">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="batchTableBody">
-            <!-- Dynamically populated via JS -->
-          </tbody>
-        </table>
-      </div>
-
-    </section>
 
   </main>
-
-  <!-- Mobile Sticky Bottom Floating Summary Bar (< 960px) -->
-  <aside class="mobile-sticky-bar" aria-label="Quick Summary">
-    <div class="sticky-metrics">
-      <span class="sticky-label">Unit Landed Cost</span>
-      <div class="sticky-val-row">
-        <span class="sticky-landed" id="stickyLanded">৳0.00</span>
-        <span class="sticky-sell" id="stickySell">Sell: ৳0.00</span>
-      </div>
-    </div>
-    <button type="button" class="btn btn-primary sticky-btn-save" id="btnStickySave">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Save
-    </button>
-  </aside>
 
   <!-- Settings Modal / Mobile Bottom Sheet -->
   <div class="modal-overlay" id="modalSettings" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
