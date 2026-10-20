@@ -26,10 +26,10 @@ const DEFAULT_SETTINGS = {
 };
 
 const DEFAULT_CATEGORIES = [
-  { id: 'clothing', name: 'Clothing', ratePerKg: 900, isDefault: true, desc: 'Apparel & Dresses' },
-  { id: 'footwear', name: 'Footwear', ratePerKg: 900, isDefault: true, desc: 'Shoes & Sneakers' },
-  { id: 'jwelry', name: 'Jwelry', ratePerKg: 800, isDefault: true, desc: 'Jewelry & Accessories' },
-  { id: 'bags', name: 'Bags', ratePerKg: 800, isDefault: true, desc: 'Handbags & Totes' }
+  { id: 'clothing', name: 'Clothing', icon: '👗', ratePerKg: 900, isDefault: true, desc: 'Apparel & Dresses' },
+  { id: 'footwear', name: 'Footwear', icon: '👟', ratePerKg: 900, isDefault: true, desc: 'Shoes & Sneakers' },
+  { id: 'jwelry', name: 'Jewelry', icon: '💍', ratePerKg: 800, isDefault: true, desc: 'Accessories & Rings' },
+  { id: 'bags', name: 'Bags', icon: '👜', ratePerKg: 800, isDefault: true, desc: 'Handbags & Totes' }
 ];
 
 // -----------------------------------------------------------------------------
@@ -41,12 +41,14 @@ class AppState {
     this.categories = this.loadCategories();
     this.batch = this.loadBatch();
     this.currentMobileTab = 'calc'; // 'calc' | 'batch'
+    
+    const initialCat = this.categories.find(c => c.id === 'footwear') || this.categories[0] || DEFAULT_CATEGORIES[0];
     this.calculator = {
       productName: '',
-      categoryId: 'footwear',
+      categoryId: initialCat ? initialCat.id : 'footwear',
       priceRmb: 10,
       weightGrams: 100,
-      costPerKg: 900,
+      costPerKg: initialCat ? initialCat.ratePerKg : 900,
       profitMode: 'flat', // Fixed flat markup model
       flatMarkupBdt: this.settings.defaultFlatMarkup || 300
     };
@@ -71,9 +73,23 @@ class AppState {
       const stored = localStorage.getItem(STORAGE_KEYS.CATEGORIES);
       if (stored) {
         const parsed = JSON.parse(stored);
-        const hasAllFour = ['clothing', 'footwear', 'jwelry', 'bags'].every(id => parsed.some(c => c.id === id));
-        if (hasAllFour) {
-          return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const list = parsed.map(c => ({
+            ...c,
+            ratePerKg: Math.max(1, parseFloat(c.ratePerKg) || 900)
+          }));
+          // Merge defaults if legacy stored categories lacked icon/desc
+          DEFAULT_CATEGORIES.forEach(def => {
+            const existing = list.find(c => c.id === def.id);
+            if (!existing) {
+              list.push({ ...def });
+            } else {
+              if (!existing.icon) existing.icon = def.icon;
+              if (!existing.desc) existing.desc = def.desc;
+              if (existing.name === 'Jwelry') existing.name = 'Jewelry';
+            }
+          });
+          return list;
         }
       }
       return JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
@@ -251,25 +267,54 @@ const UI = {
     this.bindEvents();
     this.applyTheme(this.getInitialTheme());
     this.renderBatchSummary();
-    this.calculateAndRender();
     this.selectProductChoice(state.calculator.categoryId, true);
+    this.calculateAndRender();
   },
 
   cacheDom() {
     // Product Choice Elements (Step 1)
     this.sectionProductChoice = document.getElementById('sectionProductChoice');
+    this.categoryGrid = document.getElementById('categoryGrid');
     this.choiceCards = document.querySelectorAll('.choice-card');
     this.choiceStatusCard = document.getElementById('choiceStatusCard');
     this.statusPulseDot = document.getElementById('statusPulseDot');
     this.statusTitle = document.getElementById('statusTitle');
     this.statusSubtitle = document.getElementById('statusSubtitle');
     this.btnContinueChoice = document.getElementById('btnContinueChoice');
+    this.btnManageCatRates = document.getElementById('btnManageCatRates');
+    this.btnDrawerManageRates = document.getElementById('btnDrawerManageRates');
     this.calculatorSuite = document.getElementById('calculatorSuite');
 
     // Header elements
     this.badgeExchangeRate = document.getElementById('badgeExchangeRate');
     this.btnSettings = document.getElementById('btnSettings');
     this.btnThemeToggle = document.getElementById('btnThemeToggle');
+
+    // Dedicated Category Rates Modal
+    this.modalCategoryRates = document.getElementById('modalCategoryRates');
+    this.btnCloseCatModal = document.getElementById('btnCloseCatModal');
+    this.btnSaveCatRates = document.getElementById('btnSaveCatRates');
+    this.btnResetCatRates = document.getElementById('btnResetCatRates');
+    this.catRatesList = document.getElementById('catRatesList');
+    this.btnConfirmAddCat = document.getElementById('btnConfirmAddCat');
+    this.newCatName = document.getElementById('newCatName');
+    this.newCatDesc = document.getElementById('newCatDesc');
+    this.newCatRate = document.getElementById('newCatRate');
+
+    // Main Settings Modal
+    this.modalSettings = document.getElementById('modalSettings');
+    this.btnCloseModal = document.getElementById('btnCloseModal');
+    this.btnSaveModal = document.getElementById('btnSaveModal');
+    this.btnResetSettings = document.getElementById('btnResetSettings');
+    this.categoryTableBody = document.getElementById('categoryTableBody');
+    this.btnOpenCatRatesFromSettings = document.getElementById('btnOpenCatRatesFromSettings');
+    this.modalSettingRmbRate = document.getElementById('settingRmbRate_modal');
+    this.modalSettingChinaRmb = document.getElementById('settingChinaRmb_modal');
+    this.modalSettingChinaKg = document.getElementById('settingChinaKg_modal');
+    this.modalSettingBdBdt = document.getElementById('settingBdBdt_modal');
+    this.modalSettingBdKg = document.getElementById('settingBdKg_modal');
+    this.modalSettingBuffer = document.getElementById('settingBuffer_modal');
+    this.modalSettingRound = document.getElementById('settingRound_modal');
 
     // GWPC Panel 1: Session Settings
     this.settingRmbRate = document.getElementById('settingRmbRate');
@@ -318,15 +363,6 @@ const UI = {
     this.btnExportCsv = document.getElementById('btnExportCsv');
     this.btnCopyBatch = document.getElementById('btnCopyBatch');
     this.btnClearBatch = document.getElementById('btnClearBatch');
-
-    // Settings Modal (if opened)
-    this.modalSettings = document.getElementById('modalSettings');
-    this.btnCloseModal = document.getElementById('btnCloseModal');
-    this.btnSaveModal = document.getElementById('btnSaveModal');
-    this.btnResetSettings = document.getElementById('btnResetSettings');
-    this.btnAddCategory = document.getElementById('btnAddCategory');
-    this.categoryTableBody = document.getElementById('categoryTableBody');
-    this.modalSettingRmbRate = document.getElementById('settingRmbRate_modal');
   },
 
   populateInitialValues() {
@@ -336,8 +372,8 @@ const UI = {
     if (this.settingBuffer) this.settingBuffer.value = state.settings.safetyBufferPerGram;
 
     const currentCat = state.categories.find(c => c.id === state.calculator.categoryId) || state.categories[0];
-    if (this.categorySelect) this.categorySelect.value = currentCat.id;
-    if (this.settingCostPerKg) this.settingCostPerKg.value = currentCat.ratePerKg;
+    if (this.categorySelect && currentCat) this.categorySelect.value = currentCat.id;
+    if (this.settingCostPerKg && currentCat) this.settingCostPerKg.value = currentCat.ratePerKg;
 
     if (this.inputPriceRmb) this.inputPriceRmb.value = state.calculator.priceRmb;
     if (this.inputWeightGrams) this.inputWeightGrams.value = state.calculator.weightGrams;
@@ -361,9 +397,363 @@ const UI = {
     state.categories.forEach(cat => {
       const option = document.createElement('option');
       option.value = cat.id;
-      option.textContent = `${cat.name} (${cat.ratePerKg} BDT/kg)`;
+      option.textContent = `${cat.name} (৳${cat.ratePerKg}/kg)`;
       this.categorySelect.appendChild(option);
     });
+    if (state.calculator.categoryId) {
+      this.categorySelect.value = state.calculator.categoryId;
+    }
+  },
+
+  openCategoryRatesModal(highlightCatId = null) {
+    if (!this.modalCategoryRates) return;
+    this.renderCategoryRatesModal(highlightCatId);
+    this.modalCategoryRates.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  },
+
+  closeCategoryRatesModal() {
+    if (!this.modalCategoryRates) return;
+    this.modalCategoryRates.classList.remove('open');
+    document.body.style.overflow = '';
+  },
+
+  renderCategoryRatesModal(highlightCatId = null) {
+    if (!this.catRatesList) return;
+    this.catRatesList.innerHTML = '';
+
+    const presets = [800, 850, 900, 950, 1000, 1100];
+
+    state.categories.forEach(cat => {
+      const row = document.createElement('div');
+      row.className = `cat-rate-row ${cat.id === highlightCatId ? 'highlight' : ''}`;
+      row.dataset.rowCatId = cat.id;
+
+      const perGram = (cat.ratePerKg / 1000).toFixed(2);
+
+      row.innerHTML = `
+        <div class="cat-rate-info">
+          <span class="cat-rate-icon">${cat.icon || '📦'}</span>
+          <div>
+            <div class="cat-rate-name">${cat.name}</div>
+            <div class="cat-rate-desc">${cat.desc || ''}</div>
+          </div>
+        </div>
+
+        <div class="cat-rate-controls">
+          <div class="cat-rate-presets">
+            ${presets.map(p => `
+              <button type="button" class="cat-preset-btn ${Math.abs(cat.ratePerKg - p) < 1 ? 'active' : ''}" data-preset-val="${p}">${p}</button>
+            `).join('')}
+          </div>
+
+          <div class="cat-rate-input-wrap">
+            <span class="affix">৳</span>
+            <input type="number" class="cat-rate-input" data-cat-id="${cat.id}" value="${cat.ratePerKg}" min="1" step="10" inputmode="numeric" />
+            <span class="affix">/kg</span>
+          </div>
+
+          <span class="cat-rate-gram-badge" id="gramBadge_${cat.id}">৳${perGram}/g</span>
+
+          ${!cat.isDefault ? `
+            <button type="button" class="btn-delete-cat" title="Delete ${cat.name}" data-del-cat="${cat.id}">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+          ` : ''}
+        </div>
+      `;
+
+      // Live change on typing
+      const rateInput = row.querySelector('.cat-rate-input');
+      const gramBadge = row.querySelector(`#gramBadge_${cat.id}`);
+      rateInput.addEventListener('input', () => {
+        const val = parseFloat(rateInput.value) || 0;
+        gramBadge.textContent = `৳${(val / 1000).toFixed(2)}/g`;
+        row.querySelectorAll('.cat-preset-btn').forEach(pb => {
+          pb.classList.toggle('active', Math.abs(parseFloat(pb.dataset.presetVal) - val) < 1);
+        });
+      });
+
+      // Preset clicks
+      row.querySelectorAll('.cat-preset-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const val = parseFloat(btn.dataset.presetVal);
+          rateInput.value = val;
+          gramBadge.textContent = `৳${(val / 1000).toFixed(2)}/g`;
+          row.querySelectorAll('.cat-preset-btn').forEach(pb => pb.classList.remove('active'));
+          btn.classList.add('active');
+        });
+      });
+
+      // Delete custom category
+      const delBtn = row.querySelector('.btn-delete-cat');
+      if (delBtn) {
+        delBtn.addEventListener('click', () => this.handleDeleteCategory(cat.id));
+      }
+
+      this.catRatesList.appendChild(row);
+    });
+
+    if (highlightCatId) {
+      setTimeout(() => {
+        const targetInput = this.catRatesList.querySelector(`.cat-rate-input[data-cat-id="${highlightCatId}"]`);
+        if (targetInput) {
+          targetInput.focus();
+          targetInput.select();
+        }
+      }, 100);
+    }
+  },
+
+  saveCategoryRatesFromModal() {
+    if (!this.catRatesList) return;
+    const inputs = this.catRatesList.querySelectorAll('.cat-rate-input');
+
+    inputs.forEach(input => {
+      const catId = input.dataset.catId;
+      const rate = Math.max(1, parseFloat(input.value) || 900);
+      const cat = state.categories.find(c => c.id === catId);
+      if (cat) {
+        cat.ratePerKg = rate;
+      }
+    });
+
+    state.saveCategories(state.categories);
+
+    // Sync active category cost
+    const activeCat = state.categories.find(c => c.id === state.calculator.categoryId);
+    if (activeCat) {
+      state.calculator.costPerKg = activeCat.ratePerKg;
+      if (this.settingCostPerKg) {
+        this.settingCostPerKg.value = activeCat.ratePerKg;
+      }
+    }
+
+    this.renderCategorySelect();
+    this.selectProductChoice(state.calculator.categoryId, true);
+    this.calculateAndRender();
+    this.closeCategoryRatesModal();
+
+    showToast('✓ Category shipping charges saved successfully!', 'success');
+  },
+
+  resetCategoryRatesToDefault() {
+    if (confirm('Reset all categories & shipping charges to default forwarder rates? (Clothing: ৳900, Footwear: ৳900, Jewelry: ৳800, Bags: ৳800)')) {
+      state.categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+      state.saveCategories(state.categories);
+
+      const activeCat = state.categories.find(c => c.id === state.calculator.categoryId) || state.categories[0];
+      state.calculator.categoryId = activeCat.id;
+      state.calculator.costPerKg = activeCat.ratePerKg;
+
+      this.renderCategoryRatesModal();
+      this.renderCategorySelect();
+      this.selectProductChoice(activeCat.id, true);
+      this.calculateAndRender();
+      showToast('Reset all category rates to default', 'info');
+    }
+  },
+
+  handleAddCategoryFromModal() {
+    const name = this.newCatName?.value?.trim();
+    const desc = this.newCatDesc?.value?.trim() || 'Custom Product';
+    const rate = Math.max(1, parseFloat(this.newCatRate?.value) || 900);
+
+    if (!name) {
+      showToast('Please enter a category name', 'error');
+      this.newCatName?.focus();
+      return;
+    }
+
+    const id = 'custom_' + Date.now().toString(36);
+    const newCat = {
+      id,
+      name,
+      icon: '📦',
+      ratePerKg: rate,
+      isDefault: false,
+      desc
+    };
+
+    state.categories.push(newCat);
+    state.saveCategories(state.categories);
+
+    if (this.newCatName) this.newCatName.value = '';
+    if (this.newCatDesc) this.newCatDesc.value = '';
+    if (this.newCatRate) this.newCatRate.value = '';
+
+    this.renderCategoryRatesModal(id);
+    this.renderCategorySelect();
+    showToast(`Added "${name}" at ৳${rate}/kg!`, 'success');
+  },
+
+  handleDeleteCategory(catId) {
+    const cat = state.categories.find(c => c.id === catId);
+    if (!cat) return;
+    if (cat.isDefault) {
+      showToast('Standard categories cannot be deleted', 'error');
+      return;
+    }
+
+    if (confirm(`Delete category "${cat.name}"?`)) {
+      state.categories = state.categories.filter(c => c.id !== catId);
+      state.saveCategories(state.categories);
+
+      if (state.calculator.categoryId === catId) {
+        const fallback = state.categories[0] || DEFAULT_CATEGORIES[0];
+        state.calculator.categoryId = fallback.id;
+        state.calculator.costPerKg = fallback.ratePerKg;
+      }
+
+      this.renderCategoryRatesModal();
+      this.renderCategorySelect();
+      this.selectProductChoice(state.calculator.categoryId, true);
+      this.calculateAndRender();
+      showToast(`Removed "${cat.name}"`, 'info');
+    }
+  },
+
+  // Main Settings Modal
+  openSettingsModal() {
+    if (!this.modalSettings) return;
+    if (this.modalSettingRmbRate) this.modalSettingRmbRate.value = state.settings.rmbRate;
+    if (this.modalSettingChinaRmb) this.modalSettingChinaRmb.value = state.settings.chinaDomesticRmb;
+    if (this.modalSettingChinaKg) this.modalSettingChinaKg.value = state.settings.chinaDomesticKg;
+    if (this.modalSettingBdBdt) this.modalSettingBdBdt.value = state.settings.sundarbanBdt;
+    if (this.modalSettingBdKg) this.modalSettingBdKg.value = state.settings.sundarbanKg;
+    if (this.modalSettingBuffer) this.modalSettingBuffer.value = state.settings.safetyBufferPerGram;
+    if (this.modalSettingRound) this.modalSettingRound.value = state.settings.roundToNearest || 'none';
+
+    this.renderSettingsModalCategories();
+    this.updateModalLegPreviews();
+    this.modalSettings.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  },
+
+  closeSettingsModal() {
+    if (!this.modalSettings) return;
+    this.modalSettings.classList.remove('open');
+    document.body.style.overflow = '';
+  },
+
+  updateModalLegPreviews() {
+    const preview1 = document.getElementById('previewLeg1');
+    const preview3 = document.getElementById('previewLeg3');
+    const rmb = parseFloat(this.modalSettingChinaRmb?.value) || 0;
+    const chinaKg = parseFloat(this.modalSettingChinaKg?.value) || 10;
+    const rmbRate = parseFloat(this.modalSettingRmbRate?.value) || 19.0;
+    const leg1Rate = (rmb > 0 && chinaKg > 0) ? (rmb / (chinaKg * 1000)) * rmbRate : 0;
+    if (preview1) preview1.textContent = `৳${leg1Rate.toFixed(3)}/g`;
+
+    const bdt = parseFloat(this.modalSettingBdBdt?.value) || 500;
+    const bdKg = parseFloat(this.modalSettingBdKg?.value) || 10;
+    const leg3Rate = (bdt > 0 && bdKg > 0) ? bdt / (bdKg * 1000) : 0.05;
+    if (preview3) preview3.textContent = `৳${leg3Rate.toFixed(3)}/g`;
+  },
+
+  renderSettingsModalCategories() {
+    if (!this.categoryTableBody) return;
+    this.categoryTableBody.innerHTML = '';
+    state.categories.forEach(cat => {
+      const tr = document.createElement('tr');
+      tr.className = 'category-row';
+      const perGram = (cat.ratePerKg / 1000).toFixed(2);
+      tr.innerHTML = `
+        <td>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:1.1rem">${cat.icon || '📦'}</span>
+            <span style="font-weight:700; color:var(--text-main); font-size:0.85rem">${cat.name}</span>
+          </div>
+        </td>
+        <td style="text-align:right">
+          <input type="number" class="category-rate-input" data-setting-cat="${cat.id}" value="${cat.ratePerKg}" min="1" step="10" />
+        </td>
+        <td style="text-align:right" class="category-calc-badge" id="settingPerGram_${cat.id}">
+          ৳${perGram}/g
+        </td>
+        <td style="text-align:center">
+          ${!cat.isDefault ? `
+            <button type="button" class="btn-table-icon delete" data-del-setting-cat="${cat.id}" title="Remove">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+          ` : ''}
+        </td>
+      `;
+
+      const input = tr.querySelector('.category-rate-input');
+      const badge = tr.querySelector(`#settingPerGram_${cat.id}`);
+      input.addEventListener('input', () => {
+        const val = parseFloat(input.value) || 0;
+        badge.textContent = `৳${(val / 1000).toFixed(2)}/g`;
+      });
+
+      const del = tr.querySelector('.btn-table-icon.delete');
+      if (del) {
+        del.addEventListener('click', () => {
+          this.handleDeleteCategory(cat.id);
+          this.renderSettingsModalCategories();
+        });
+      }
+
+      this.categoryTableBody.appendChild(tr);
+    });
+  },
+
+  saveSettingsModal() {
+    state.settings.rmbRate = Math.max(0.01, parseFloat(this.modalSettingRmbRate?.value) || 19.0);
+    state.settings.chinaDomesticRmb = Math.max(0, parseFloat(this.modalSettingChinaRmb?.value) || 0);
+    state.settings.chinaDomesticKg = Math.max(0.1, parseFloat(this.modalSettingChinaKg?.value) || 10);
+    state.settings.sundarbanBdt = Math.max(0, parseFloat(this.modalSettingBdBdt?.value) || 500);
+    state.settings.sundarbanKg = Math.max(0.1, parseFloat(this.modalSettingBdKg?.value) || 10);
+    state.settings.safetyBufferPerGram = Math.max(0, parseFloat(this.modalSettingBuffer?.value) || 0);
+    state.settings.roundToNearest = this.modalSettingRound?.value || 'none';
+
+    state.saveSettings(state.settings);
+
+    // Save category rates from table
+    if (this.categoryTableBody) {
+      this.categoryTableBody.querySelectorAll('.category-rate-input').forEach(inp => {
+        const cat = state.categories.find(c => c.id === inp.dataset.settingCat);
+        if (cat) {
+          cat.ratePerKg = Math.max(1, parseFloat(inp.value) || cat.ratePerKg);
+        }
+      });
+      state.saveCategories(state.categories);
+    }
+
+    // Update session settings drawer
+    if (this.settingRmbRate) this.settingRmbRate.value = state.settings.rmbRate;
+    if (this.settingSundarbanBdt) this.settingSundarbanBdt.value = state.settings.sundarbanBdt;
+    if (this.settingChinaRmb) this.settingChinaRmb.value = state.settings.chinaDomesticRmb;
+    if (this.settingBuffer) this.settingBuffer.value = state.settings.safetyBufferPerGram;
+
+    const activeCat = state.categories.find(c => c.id === state.calculator.categoryId);
+    if (activeCat && this.settingCostPerKg) {
+      this.settingCostPerKg.value = activeCat.ratePerKg;
+      state.calculator.costPerKg = activeCat.ratePerKg;
+    }
+
+    this.renderCategorySelect();
+    this.selectProductChoice(state.calculator.categoryId, true);
+    this.calculateAndRender();
+    this.closeSettingsModal();
+    showToast('Settings & category rates saved successfully!', 'success');
+  },
+
+  resetSettingsModal() {
+    if (confirm('Reset all exchange rates and shipping legs to factory defaults?')) {
+      state.settings = { ...DEFAULT_SETTINGS };
+      state.saveSettings(state.settings);
+      state.categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+      state.saveCategories(state.categories);
+
+      this.populateInitialValues();
+      this.renderCategorySelect();
+      this.openSettingsModal();
+      this.selectProductChoice(state.calculator.categoryId, true);
+      this.calculateAndRender();
+      showToast('Reset settings to factory defaults', 'info');
+    }
   },
 
   bindEvents() {
@@ -371,6 +761,71 @@ const UI = {
       this.syncStateFromInputs();
       this.calculateAndRender();
     };
+
+    // Category modal triggers
+    if (this.btnManageCatRates) {
+      this.btnManageCatRates.addEventListener('click', () => this.openCategoryRatesModal());
+    }
+    if (this.btnDrawerManageRates) {
+      this.btnDrawerManageRates.addEventListener('click', () => this.openCategoryRatesModal());
+    }
+    if (this.btnCloseCatModal) {
+      this.btnCloseCatModal.addEventListener('click', () => this.closeCategoryRatesModal());
+    }
+    if (this.btnSaveCatRates) {
+      this.btnSaveCatRates.addEventListener('click', () => this.saveCategoryRatesFromModal());
+    }
+    if (this.btnResetCatRates) {
+      this.btnResetCatRates.addEventListener('click', () => this.resetCategoryRatesToDefault());
+    }
+    if (this.btnConfirmAddCat) {
+      this.btnConfirmAddCat.addEventListener('click', () => this.handleAddCategoryFromModal());
+    }
+    if (this.btnOpenCatRatesFromSettings) {
+      this.btnOpenCatRatesFromSettings.addEventListener('click', () => {
+        this.closeSettingsModal();
+        this.openCategoryRatesModal();
+      });
+    }
+
+    // Main Settings Modal triggers
+    if (this.btnSettings) {
+      this.btnSettings.addEventListener('click', () => this.openSettingsModal());
+    }
+    if (this.btnCloseModal) {
+      this.btnCloseModal.addEventListener('click', () => this.closeSettingsModal());
+    }
+    if (this.btnSaveModal) {
+      this.btnSaveModal.addEventListener('click', () => this.saveSettingsModal());
+    }
+    if (this.btnResetSettings) {
+      this.btnResetSettings.addEventListener('click', () => this.resetSettingsModal());
+    }
+
+    // Live previews in settings modal
+    [this.modalSettingChinaRmb, this.modalSettingChinaKg, this.modalSettingRmbRate, this.modalSettingBdBdt, this.modalSettingBdKg].forEach(inp => {
+      if (inp) inp.addEventListener('input', () => this.updateModalLegPreviews());
+    });
+
+    // Outside clicks & escape key
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        this.closeCategoryRatesModal();
+        this.closeSettingsModal();
+      }
+    });
+
+    if (this.modalCategoryRates) {
+      this.modalCategoryRates.addEventListener('click', (e) => {
+        if (e.target === this.modalCategoryRates) this.closeCategoryRatesModal();
+      });
+    }
+
+    if (this.modalSettings) {
+      this.modalSettings.addEventListener('click', (e) => {
+        if (e.target === this.modalSettings) this.closeSettingsModal();
+      });
+    }
 
     // Live session settings inputs
     if (this.settingRmbRate) this.settingRmbRate.addEventListener('input', triggerRecalc);
@@ -393,13 +848,22 @@ const UI = {
     }
 
     // Top Product Choice Cards
-    this.choiceCards.forEach(card => {
-      card.addEventListener('click', () => {
-        const catId = card.dataset.category;
-        this.selectProductChoice(catId);
-        triggerRecalc();
+    if (this.choiceCards) {
+      this.choiceCards.forEach(card => {
+        card.addEventListener('click', () => {
+          const catId = card.dataset.category;
+          this.selectProductChoice(catId);
+          triggerRecalc();
+        });
       });
-    });
+    }
+
+    // Forwarder freight status subtitle click opens category rates modal
+    if (this.statusSubtitle) {
+      this.statusSubtitle.addEventListener('click', () => {
+        this.openCategoryRatesModal(state.calculator.categoryId);
+      });
+    }
 
     if (this.btnContinueChoice) {
       this.btnContinueChoice.addEventListener('click', () => {
@@ -478,10 +942,7 @@ const UI = {
     // Rate badge click
     if (this.badgeExchangeRate) {
       this.badgeExchangeRate.addEventListener('click', () => {
-        if (this.settingRmbRate) {
-          this.settingRmbRate.focus();
-          this.settingRmbRate.select();
-        }
+        this.openSettingsModal();
       });
     }
   },
@@ -493,7 +954,9 @@ const UI = {
     state.settings.safetyBufferPerGram = Math.max(0, parseFloat(this.settingBuffer?.value) || 0);
 
     state.calculator.productName = this.inputProductName?.value?.trim() || '';
-    state.calculator.categoryId = this.categorySelect?.value || 'footwear';
+    if (this.categorySelect && this.categorySelect.value) {
+      state.calculator.categoryId = this.categorySelect.value;
+    }
     state.calculator.priceRmb = Math.max(0, parseFloat(this.inputPriceRmb?.value) || 0);
     state.calculator.weightGrams = Math.max(0, parseFloat(this.inputWeightGrams?.value) || 0);
     state.calculator.costPerKg = Math.max(1, parseFloat(this.settingCostPerKg?.value) || 900);
@@ -502,11 +965,18 @@ const UI = {
 
     state.saveSettings(state.settings);
 
-    // Update active category in state categories
+    // Update active category in state categories and save
     const activeCat = state.categories.find(c => c.id === state.calculator.categoryId);
     if (activeCat && this.settingCostPerKg) {
-      activeCat.ratePerKg = parseFloat(this.settingCostPerKg.value) || activeCat.ratePerKg;
-      state.saveCategories(state.categories);
+      const newRate = parseFloat(this.settingCostPerKg.value) || activeCat.ratePerKg;
+      if (activeCat.ratePerKg !== newRate) {
+        activeCat.ratePerKg = newRate;
+        state.saveCategories(state.categories);
+        if (this.statusSubtitle) {
+          const perGram = (newRate / 1000).toFixed(2);
+          this.statusSubtitle.textContent = `Forwarder freight: ৳${newRate}/kg (৳${perGram}/g) · Guangzhou ➔ Dhaka Hub`;
+        }
+      }
     }
   },
 
@@ -515,6 +985,7 @@ const UI = {
     if (!category) return;
 
     state.calculator.categoryId = catId;
+    state.calculator.costPerKg = category.ratePerKg;
     if (this.categorySelect) {
       this.categorySelect.value = catId;
     }
@@ -523,7 +994,8 @@ const UI = {
     }
 
     // Update visual active state on choice cards
-    this.choiceCards.forEach(card => {
+    const cards = document.querySelectorAll('.choice-card[data-category]');
+    cards.forEach(card => {
       const isSelected = card.dataset.category === catId;
       card.classList.toggle('selected', isSelected);
       card.setAttribute('aria-checked', isSelected ? 'true' : 'false');
@@ -547,7 +1019,7 @@ const UI = {
     if (!silent) {
       this.syncStateFromInputs();
       this.calculateAndRender();
-      showToast(`Selected: ${category.name}`, 'info');
+      showToast(`Selected: ${category.name} (৳${category.ratePerKg}/kg)`, 'info');
     }
   },
 

@@ -248,6 +248,80 @@ body {
   background-color: rgba(16, 185, 129, 0.22);
 }
 
+.btn-header-rates {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  background-color: rgba(6, 182, 212, 0.12);
+  border: 1px solid rgba(6, 182, 212, 0.35);
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--color-cyan-light);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.btn-header-rates:hover {
+  background-color: rgba(6, 182, 212, 0.22);
+  border-color: var(--color-cyan);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 0 12px rgba(6, 182, 212, 0.28);
+}
+
+.btn-header-rates:active {
+  transform: scale(0.96);
+  background-color: rgba(6, 182, 212, 0.3);
+}
+
+.btn-header-rates svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  flex-shrink: 0;
+}
+
+.mini-rates-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(6, 182, 212, 0.08);
+  border: 1px solid rgba(6, 182, 212, 0.25);
+  color: var(--color-cyan-light);
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.mini-rates-link:hover {
+  background: rgba(6, 182, 212, 0.18);
+  border-color: var(--color-cyan);
+  color: #ffffff;
+}
+
+@media (max-width: 480px) {
+  .brand-subtitle {
+    display: none;
+  }
+  .btn-header-rates {
+    padding: 6px 8px;
+    gap: 4px;
+    font-size: 0.72rem;
+  }
+  .badge-rate {
+    padding: 6px 8px;
+    font-size: 0.72rem;
+  }
+}
+
 .btn-icon {
   width: 38px;
   height: 38px;
@@ -2717,6 +2791,12 @@ select.input-field option {
   font-family: var(--font-mono);
   font-size: 0.76rem;
   color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.category-active-indicator:hover {
+  color: var(--color-emerald-light);
 }
 
 .simple-category-grid {
@@ -2795,6 +2875,237 @@ select.input-field option {
 
 .simple-cat-card.selected .simple-cat-check {
   opacity: 1;
+}
+
+/* --------------------------------------------------------------------------
+   Category Shipping Rates Manager Modal
+   -------------------------------------------------------------------------- */
+.modal-info-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.24);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  margin-bottom: 18px;
+}
+
+.modal-info-banner .info-icon {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.modal-info-banner .info-text {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.modal-info-banner .info-text strong {
+  color: var(--text-main);
+}
+
+.cat-rates-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.cat-rate-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  transition: all 0.2s ease;
+}
+
+.cat-rate-row:hover {
+  border-color: rgba(16, 185, 129, 0.3);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.cat-rate-row.highlight {
+  border-color: var(--color-emerald);
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.2);
+}
+
+.cat-rate-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 140px;
+}
+
+.cat-rate-icon {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.cat-rate-name {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 2px;
+}
+
+.cat-rate-desc {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+}
+
+.cat-rate-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.cat-rate-input-wrap {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg-input);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 0 8px;
+  transition: all 0.15s ease;
+}
+
+.cat-rate-input-wrap:focus-within {
+  border-color: var(--color-emerald);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+.cat-rate-input-wrap .affix {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+.cat-rate-input {
+  width: 75px;
+  background: transparent;
+  border: none;
+  color: var(--color-emerald-light);
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 800;
+  text-align: right;
+  padding: 8px 4px;
+}
+
+.cat-rate-input:focus {
+  outline: none;
+}
+
+.cat-rate-presets {
+  display: flex;
+  gap: 4px;
+}
+
+.cat-preset-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 4px 7px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cat-preset-btn:hover {
+  background: rgba(16, 185, 129, 0.2);
+  color: var(--color-emerald-light);
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+.cat-rate-gram-badge {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 5px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  min-width: 68px;
+  text-align: right;
+}
+
+.btn-delete-cat {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #f87171;
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  padding: 0;
+}
+
+.btn-delete-cat:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: #ef4444;
+}
+
+.cat-add-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-top: 10px;
+}
+
+.cat-add-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.cat-add-title {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+}
+
+.cat-add-inputs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 640px) {
+  .cat-rate-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .cat-rate-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .cat-add-inputs-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* 2-Column Calculator Suite */

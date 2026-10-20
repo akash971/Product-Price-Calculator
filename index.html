@@ -43,6 +43,15 @@
           <span>¥1 = ৳19.00</span>
         </button>
 
+        <!-- All Category Shipping Rates (Top Nav) -->
+        <button type="button" class="btn-header-rates" id="btnManageCatRates" title="Configure shipping charges for all categories (Clothing, Footwear, Jewelry, Bags)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+            <circle cx="7" cy="7" r="1.5" fill="currentColor"/>
+          </svg>
+          <span>All Rates</span>
+        </button>
+
         <!-- Dark / Light Theme Toggle -->
         <button type="button" class="btn-icon" id="btnThemeToggle" title="Toggle Dark/Light Mode" aria-label="Toggle Theme">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -78,7 +87,7 @@
           <span class="category-step-badge">1. Category</span>
           <span class="category-bar-title">Choose Product Type:</span>
         </div>
-        <div class="category-active-indicator" id="statusSubtitle">
+        <div class="category-active-indicator" id="statusSubtitle" title="Click to view &amp; edit category shipping charges">
           Forwarder freight: ৳900/kg (৳0.90/g) · Guangzhou ➔ Dhaka Hub
         </div>
       </div>
@@ -239,10 +248,19 @@
                   </div>
 
                   <div class="simple-field">
-                    <label class="simple-label-sub" for="settingCostPerKg">
-                      Category Freight/KG
-                      <span class="mini-calc" id="pillIntlRate">(=0.90/g)</span>
-                    </label>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                      <label class="simple-label-sub" for="settingCostPerKg" style="margin-bottom:0;">
+                        Category Freight/KG
+                        <span class="mini-calc" id="pillIntlRate">(=0.90/g)</span>
+                      </label>
+                      <button type="button" class="mini-rates-link" id="btnDrawerManageRates" title="Configure shipping charges for all categories">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                          <circle cx="7" cy="7" r="1.5" fill="currentColor"/>
+                        </svg>
+                        All Rates
+                      </button>
+                    </div>
                     <div class="simple-input-wrap mini">
                       <span class="simple-affix-left">৳</span>
                       <input type="number" id="settingCostPerKg" class="simple-input mini" value="900" min="1" step="10" />
@@ -343,6 +361,79 @@
 
   </main>
 
+  <!-- DEDICATED CATEGORY SHIPPING RATES MODAL -->
+  <div class="modal-overlay" id="modalCategoryRates" role="dialog" aria-modal="true" aria-labelledby="catModalTitle">
+    <div class="modal-card">
+      <div class="modal-drag-handle"></div>
+
+      <div class="modal-header">
+        <h2 class="modal-title" id="catModalTitle">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          Set Category Shipping Charges
+        </h2>
+        <button type="button" class="btn-icon" id="btnCloseCatModal" aria-label="Close Category Rates">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="modal-info-banner">
+          <span class="info-icon">📦</span>
+          <div class="info-text">
+            <strong>Guangzhou ➔ Dhaka Forwarder Rates:</strong>
+            Enter freight in BDT per KG for each category. Gram rates auto-calculate (/1000). All changes are <strong>saved permanently for later use</strong>.
+          </div>
+        </div>
+
+        <!-- Dynamic Category Rate Cards / Rows -->
+        <div class="cat-rates-list" id="catRatesList">
+          <!-- Dynamically populated via UI.renderCategoryRatesModal() -->
+        </div>
+
+        <!-- Add Custom Category Card -->
+        <div class="cat-add-card" id="catAddCard">
+          <div class="cat-add-card-header">
+            <h4 class="cat-add-title">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add New Product Category
+            </h4>
+            <span class="text-dim font-mono" style="font-size:0.7rem">Optional</span>
+          </div>
+          <div class="cat-add-inputs-grid">
+            <div class="simple-field">
+              <label class="simple-label-sub" for="newCatName">Category Name</label>
+              <input type="text" id="newCatName" class="simple-input mini" placeholder="e.g. Cosmetics or Toys" />
+            </div>
+            <div class="simple-field">
+              <label class="simple-label-sub" for="newCatDesc">Description</label>
+              <input type="text" id="newCatDesc" class="simple-input mini" placeholder="e.g. Skincare & Makeup" />
+            </div>
+            <div class="simple-field">
+              <label class="simple-label-sub" for="newCatRate">Rate (BDT/kg)</label>
+              <div class="simple-input-wrap mini">
+                <span class="simple-affix-left">৳</span>
+                <input type="number" id="newCatRate" class="simple-input mini" placeholder="900" min="1" step="10" />
+                <span class="simple-affix-right">/kg</span>
+              </div>
+            </div>
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm" id="btnConfirmAddCat" style="margin-top:10px; width:100%;">
+            <span>+ Add to Categories</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost btn-sm" id="btnResetCatRates">
+          Reset Defaults
+        </button>
+        <button type="button" class="btn btn-primary" id="btnSaveCatRates">
+          Save All Charges
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Settings Modal / Mobile Bottom Sheet -->
   <div class="modal-overlay" id="modalSettings" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal-card">
@@ -353,7 +444,7 @@
       <div class="modal-header">
         <h2 class="modal-title" id="modalTitle">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-          Exchange Rate & Shipping Setup
+          Exchange Rate &amp; Shipping Setup
         </h2>
         <button type="button" class="btn-icon" id="btnCloseModal" aria-label="Close Settings">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -370,7 +461,7 @@
           <p class="settings-section-desc">Conversion rate from Chinese Yuan (RMB ¥) to Bangladeshi Taka (BDT ৳)</p>
           <div class="input-wrap">
             <div class="input-affix prefix">1 RMB (¥) =</div>
-            <input type="number" id="settingRmbRate" class="input-field" value="18.00" min="0.1" step="0.05" inputmode="decimal" />
+            <input type="number" id="settingRmbRate_modal" class="input-field" value="19.00" min="0.1" step="0.05" inputmode="decimal" />
             <div class="input-affix">BDT (৳)</div>
           </div>
         </div>
@@ -383,22 +474,22 @@
           <p class="settings-section-desc">Supplier/Friend to Guangzhou Hub: <code>(RMB_per_kg / 1000) * RMB_Rate</code></p>
           <div class="settings-two-col">
             <div>
-              <label class="form-label">Total Cost (RMB)</label>
+              <label class="form-label" for="settingChinaRmb_modal">Total Cost (RMB)</label>
               <div class="input-wrap">
                 <div class="input-affix prefix affix-rmb">¥</div>
-                <input type="number" id="settingChinaRmb" class="input-field" value="30" min="0" step="any" inputmode="decimal" />
+                <input type="number" id="settingChinaRmb_modal" class="input-field" value="0" min="0" step="any" inputmode="decimal" />
               </div>
             </div>
             <div>
-              <label class="form-label">Weight Basis (kg)</label>
+              <label class="form-label" for="settingChinaKg_modal">Weight Basis (kg)</label>
               <div class="input-wrap">
-                <input type="number" id="settingChinaKg" class="input-field" value="10" min="0.1" step="any" inputmode="decimal" />
+                <input type="number" id="settingChinaKg_modal" class="input-field" value="10" min="0.1" step="any" inputmode="decimal" />
                 <div class="input-affix">kg</div>
               </div>
             </div>
           </div>
           <div style="font-size:0.75rem; color:var(--color-emerald-light); margin-top:6px; font-family:var(--font-mono)">
-            Live Rate: <span id="previewLeg1">৳0.054/g</span>
+            Live Rate: <span id="previewLeg1">৳0.000/g</span>
           </div>
         </div>
 
@@ -410,16 +501,16 @@
           <p class="settings-section-desc">Dhaka Hub to Rajshahi (Sundarban / Steadfast): <code>BDT_per_kg / 1000</code></p>
           <div class="settings-two-col">
             <div>
-              <label class="form-label">Total Courier Cost (BDT)</label>
+              <label class="form-label" for="settingBdBdt_modal">Total Courier Cost (BDT)</label>
               <div class="input-wrap">
                 <div class="input-affix prefix">৳</div>
-                <input type="number" id="settingBdBdt" class="input-field" value="500" min="0" step="any" inputmode="decimal" />
+                <input type="number" id="settingBdBdt_modal" class="input-field" value="500" min="0" step="any" inputmode="decimal" />
               </div>
             </div>
             <div>
-              <label class="form-label">Weight Basis (kg)</label>
+              <label class="form-label" for="settingBdKg_modal">Weight Basis (kg)</label>
               <div class="input-wrap">
-                <input type="number" id="settingBdKg" class="input-field" value="10" min="0.1" step="any" inputmode="decimal" />
+                <input type="number" id="settingBdKg_modal" class="input-field" value="10" min="0.1" step="any" inputmode="decimal" />
                 <div class="input-affix">kg</div>
               </div>
             </div>
@@ -434,10 +525,10 @@
           <h3 class="settings-section-title">
             <span>4. Safety Buffer / Packaging Contingency</span>
           </h3>
-          <p class="settings-section-desc">Allowance for boxes, bubble wraps, moisture bags & currency shifts</p>
+          <p class="settings-section-desc">Allowance for packaging, boxes, bubble wraps &amp; currency shifts</p>
           <div class="input-wrap">
             <div class="input-affix prefix">+ Buffer</div>
-            <input type="number" id="settingBuffer" class="input-field" value="0.05" min="0" step="0.01" inputmode="decimal" />
+            <input type="number" id="settingBuffer_modal" class="input-field" value="0.00" min="0" step="0.01" inputmode="decimal" />
             <div class="input-affix">BDT / gram</div>
           </div>
         </div>
@@ -446,19 +537,19 @@
         <div class="settings-section">
           <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
             <h3 class="settings-section-title" style="margin-bottom:0;">
-              <span>5. Leg 2: Guangzhou ➔ Dhaka Forwarder Rates</span>
+              <span>5. Leg 2: Category Shipping Charges</span>
             </h3>
-            <button type="button" class="btn btn-secondary btn-sm" id="btnAddCategory">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              Add Category
+            <button type="button" class="btn btn-secondary btn-sm" id="btnOpenCatRatesFromSettings">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              Manage Rates
             </button>
           </div>
-          <p class="settings-section-desc">Forwarder freight rates per kg auto-convert to BDT/gram (/1000).</p>
+          <p class="settings-section-desc">Guangzhou ➔ Dhaka forwarder freight rates for all categories.</p>
           
           <table class="category-manager-table">
             <thead>
               <tr style="font-size:0.68rem; color:var(--text-dim); text-transform:uppercase;">
-                <th>Category Name</th>
+                <th>Category</th>
                 <th style="text-align:right">Rate (BDT/kg)</th>
                 <th style="text-align:right">Per Gram</th>
                 <th style="text-align:center; width:36px;"></th>
@@ -477,7 +568,7 @@
           </h3>
           <p class="settings-section-desc">Price rounding for customer quotes</p>
           <div class="input-wrap">
-            <select id="settingRound" class="input-field">
+            <select id="settingRound_modal" class="input-field">
               <option value="none">Exact decimals (e.g. ৳1,489.20)</option>
               <option value="10">Round UP to nearest 10 BDT (e.g. ৳1,490.00)</option>
               <option value="50">Round UP to nearest 50 BDT (e.g. ৳1,500.00)</option>
